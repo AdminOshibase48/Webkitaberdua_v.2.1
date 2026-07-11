@@ -559,3 +559,289 @@ console.log('🤖 AI Module Loaded with Developer API Key');
 console.log(`📋 Available Models: ${Object.keys(AVAILABLE_MODELS).length}`);
 console.log(`🔑 API Key: ${apiKey ? '✅ Set' : '❌ Missing'}`);
 console.log(`🤖 Current Model: ${userModel}`);
+// ============================================
+// AI PAGE SPECIFIC FUNCTIONS
+// ============================================
+
+// Initialize AI page
+async function initAIPage() {
+    const user = await getCurrentUser();
+    if (!user) {
+        window.location.href = '/login.html';
+        return;
+    }
+
+    // Update model display
+    const modelDisplay = document.getElementById('ai-model-display');
+    if (modelDisplay) {
+        const currentModel = getUserModel();
+        const models = getAvailableModels();
+        modelDisplay.textContent = models[currentModel] || currentModel;
+    }
+
+    // Update context status
+    const contextStatus = document.getElementById('ai-context-status');
+    if (contextStatus) {
+        const apiKey = getApiKey();
+        if (apiKey) {
+            contextStatus.textContent = '✅ Dengan konteks aplikasi';
+            contextStatus.style.color = '#34c759';
+        } else {
+            contextStatus.textContent = '⚠️ Tanpa konteks (API Key missing)';
+            contextStatus.style.color = '#ff9500';
+        }
+    }
+
+    // Setup AI chat
+    setupAIChat();
+
+    // Setup quick action buttons
+    setupQuickActions();
+
+    console.log('🤖 AI Page initialized');
+}
+
+// Setup AI chat functionality
+function setupAIChat() {
+    const input = document.getElementById('ai-input');
+    const sendBtn = document.getElementById('ai-send-btn');
+    const messagesContainer = document.getElementById('ai-messages');
+    const loading = document.getElementById('ai-loading');
+
+    if (!input || !sendBtn) return;
+
+    // Send message function
+    async function sendMessage() {
+        const message = input.value.trim();
+        if (!message) return;
+
+        // Check API key
+        const apiKey = getApiKey();
+        if (!apiKey) {
+            showToast('⚠️ API Key tidak ditemukan. Hubungi developer.', 'error');
+            return;
+        }
+
+        // Add user message to UI
+        addAIMessage('user', message);
+        input.value = '';
+
+        // Show loading
+        if (loading) loading.classList.remove('hidden');
+        updateAIStatus('Generating...', 'loading');
+
+        // Send to AI
+        const response = await sendAIMessage(message);
+
+        // Hide loading
+        if (loading) loading.classList.add('hidden');
+        updateAIStatus('Siap', 'online');
+
+        if (response) {
+            // Add AI response to UI
+            addAIMessage('assistant', response);
+            
+            // Save to history
+            saveAIHistory(message, response);
+        } else {
+            addAIMessage('assistant', 'Maaf, saya mengalami masalah. Silakan coba lagi nanti. 😅');
+        }
+    }
+
+    // Event listeners
+    sendBtn.addEventListener('click', sendMessage);
+    input.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            sendMessage();
+        }
+    });
+
+    // Auto focus input
+    input.focus();
+}
+
+// Add message to AI chat
+function addAIMessage(role, content) {
+    const container = document.getElementById('ai-messages');
+    if (!container) return;
+
+    const messageDiv = document.createElement('div');
+    messageDiv.className = `ai-message ai-${role}`;
+
+    if (role === 'assistant') {
+        const avatar = document.createElement('div');
+        avatar.className = 'ai-avatar';
+        avatar.textContent = '🤖';
+        messageDiv.appendChild(avatar);
+
+        const bubble = document.createElement('div');
+        bubble.className = 'ai-bubble';
+        
+        // Format content with markdown-like styling
+        const formattedContent = formatAIContent(content);
+        bubble.innerHTML = formattedContent;
+        
+        messageDiv.appendChild(bubble);
+    } else {
+        const bubble = document.createElement('div');
+        bubble.className = 'ai-bubble user-bubble';
+        bubble.textContent = content;
+        messageDiv.appendChild(bubble);
+    }
+
+    container.appendChild(messageDiv);
+    
+    // Scroll to bottom
+    container.scrollTop = container.scrollHeight;
+}
+
+// Format AI content (adds basic markdown)
+function formatAIContent(content) {
+    // Convert newlines to <br>
+    let formatted = content.replace(/\n/g, '<br>');
+    
+    // Convert **bold** to <strong>
+    formatted = formatted.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+    
+    // Convert *italic* to <em>
+    formatted = formatted.replace(/\*(.*?)\*/g, '<em>$1</em>');
+    
+    // Convert bullet points
+    formatted = formatted.replace(/• (.*?)(<br>|$)/g, '• $1$2');
+    
+    return formatted;
+}
+
+// Setup quick action buttons
+function setupQuickActions() {
+    const buttons = document.querySelectorAll('.ai-quick-btn');
+    const loading = document.getElementById('ai-loading');
+
+    buttons.forEach(btn => {
+        btn.addEventListener('click', async () => {
+            const type = btn.dataset.type;
+            const apiKey = getApiKey();
+            
+            if (!apiKey) {
+                showToast('⚠️ API Key tidak ditemukan. Hubungi developer.', 'error');
+                return;
+            }
+
+            // Get template message
+            const templates = {
+                'relationship_advice': 'Berikan saya saran hubungan yang penuh kasih untuk hari ini. Tolong gunakan data hubungan saya untuk memberikan saran yang personal.',
+                'date_ideas': 'Sarankan 5 ide kencan yang kreatif dan romantis berdasarkan preferensi saya.',
+                'motivation': 'Berikan saya motivasi cinta harian dan dorongan semangat.',
+                'love_language': 'Bantu saya memahami bahasa cinta pasangan saya lebih baik. Analisis berdasarkan interaksi kami.',
+                'anniversary': 'Bantu saya merencanakan perayaan anniversary yang spesial dan bermakna.',
+                'gift': 'Sarankan ide hadiah yang bermakna untuk pasangan saya.',
+                'analyze': 'Analisis hubungan saya secara lengkap dan berikan saran untuk meningkatkannya. Gunakan semua data yang tersedia.',
+                'financial_advice': 'Berikan saya saran keuangan untuk pasangan berdasarkan transaksi kami.'
+            };
+
+            const message = templates[type] || 'Halo!';
+            
+            // Add user message
+            addAIMessage('user', message);
+
+            // Show loading
+            if (loading) loading.classList.remove('hidden');
+            updateAIStatus('Generating...', 'loading');
+
+            // Send to AI
+            const response = await quickAIPrompt(type);
+
+            // Hide loading
+            if (loading) loading.classList.add('hidden');
+            updateAIStatus('Siap', 'online');
+
+            if (response) {
+                addAIMessage('assistant', response);
+                saveAIHistory(message, response);
+            } else {
+                addAIMessage('assistant', 'Maaf, saya mengalami masalah. Silakan coba lagi nanti. 😅');
+            }
+        });
+    });
+}
+
+// Update AI status
+function updateAIStatus(text, status) {
+    const statusText = document.getElementById('ai-status-text');
+    const statusDot = document.getElementById('ai-status-dot');
+    
+    if (statusText) statusText.textContent = text;
+    if (statusDot) {
+        statusDot.className = `status-dot ${status}`;
+    }
+}
+
+// Load AI history
+async function loadAIHistory() {
+    try {
+        const history = await getAIHistory(20);
+        const container = document.getElementById('ai-messages');
+        if (!container) return;
+
+        // Clear welcome message if history exists
+        if (history.length > 0) {
+            // Keep only the last 10 messages
+            const recent = history.slice(0, 10);
+            recent.reverse().forEach(item => {
+                // Add user message
+                addAIMessage('user', item.prompt);
+                // Add AI response
+                addAIMessage('assistant', item.response);
+            });
+            
+            // Add a separator
+            const separator = document.createElement('div');
+            separator.className = 'ai-history-separator';
+            separator.innerHTML = '<hr><span style="font-size: 0.8rem; color: var(--text-secondary);">Riwayat sebelumnya</span><hr>';
+            container.prepend(separator);
+        }
+    } catch (error) {
+        console.error('Error loading AI history:', error);
+    }
+}
+
+// Clear AI history
+async function clearAIHistory() {
+    try {
+        const user = await getCurrentUser();
+        if (!user) return;
+
+        if (!confirm('Hapus semua riwayat chat AI?')) return;
+
+        const { error } = await supabaseClient
+            .from('ai_history')
+            .delete()
+            .eq('user_id', user.id);
+
+        if (error) throw error;
+        
+        // Reload page to clear messages
+        showToast('Riwayat AI berhasil dihapus', 'success');
+        window.location.reload();
+    } catch (error) {
+        console.error('Error clearing AI history:', error);
+        showToast('Gagal menghapus riwayat', 'error');
+    }
+}
+
+// Override init for AI page
+document.addEventListener('DOMContentLoaded', async () => {
+    // Check if we're on AI page
+    if (window.location.pathname.includes('ai.html')) {
+        await initAIPage();
+        await loadAIHistory();
+    }
+});
+
+// Export new functions
+window.initAIPage = initAIPage;
+window.addAIMessage = addAIMessage;
+window.loadAIHistory = loadAIHistory;
+window.clearAIHistory = clearAIHistory;
+window.updateAIStatus = updateAIStatus;

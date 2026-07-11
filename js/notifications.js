@@ -1,9 +1,15 @@
-// Notification system
+// ============================================
+// NOTIFICATIONS SYSTEM
+// ============================================
+
 let notificationChannel = null;
 let unreadCount = 0;
 let notificationPermission = false;
 
-// Request notification permission
+// ============================================
+// PERMISSION
+// ============================================
+
 async function requestNotificationPermission() {
     if (!('Notification' in window)) {
         console.log('Notifications not supported');
@@ -15,17 +21,20 @@ async function requestNotificationPermission() {
     return notificationPermission;
 }
 
-// Send browser notification
-function sendBrowserNotification(title, body, icon = '/favicon.ico') {
+// ============================================
+// BROWSER NOTIFICATION
+// ============================================
+
+function sendBrowserNotification(title, body, icon = 'favicon.ico') {
     if (!notificationPermission) return;
 
     try {
         const notification = new Notification(title, {
             body: body,
             icon: icon,
-            badge: '/favicon.ico',
+            badge: 'favicon.ico',
             vibrate: [200, 100, 200],
-            tag: Date.now()
+            tag: Date.now().toString()
         });
 
         notification.onclick = () => {
@@ -37,7 +46,10 @@ function sendBrowserNotification(title, body, icon = '/favicon.ico') {
     }
 }
 
-// Add notification to database
+// ============================================
+// DATABASE OPERATIONS
+// ============================================
+
 async function addNotification(userId, type, title, message, data = null) {
     try {
         const notification = {
@@ -78,7 +90,6 @@ async function addNotification(userId, type, title, message, data = null) {
     }
 }
 
-// Get user notifications
 async function getNotifications(limit = 50) {
     try {
         const user = await getCurrentUser();
@@ -99,7 +110,6 @@ async function getNotifications(limit = 50) {
     }
 }
 
-// Mark notification as read
 async function markNotificationAsRead(notificationId) {
     try {
         const { error } = await supabaseClient
@@ -115,7 +125,6 @@ async function markNotificationAsRead(notificationId) {
     }
 }
 
-// Mark all notifications as read
 async function markAllNotificationsAsRead() {
     try {
         const user = await getCurrentUser();
@@ -136,7 +145,10 @@ async function markAllNotificationsAsRead() {
     }
 }
 
-// Subscribe to realtime notifications
+// ============================================
+// REALTIME SUBSCRIPTION
+// ============================================
+
 function subscribeToNotifications(callback) {
     try {
         notificationChannel = supabaseClient
@@ -153,27 +165,48 @@ function subscribeToNotifications(callback) {
     }
 }
 
-// Update notification badge
+// ============================================
+// UI UPDATES
+// ============================================
+
 function updateNotificationBadge() {
     const badge = document.getElementById('notification-badge');
     if (badge) {
         if (unreadCount > 0) {
-            badge.textContent = unreadCount;
+            badge.textContent = unreadCount > 99 ? '99+' : unreadCount;
             badge.style.display = 'block';
         } else {
             badge.style.display = 'none';
         }
     }
 
-    // Update favicon badge (if supported)
-    if ('setAppBadge' in navigator && unreadCount > 0) {
-        navigator.setAppBadge(unreadCount);
-    } else if ('setAppBadge' in navigator) {
-        navigator.clearAppBadge();
+    // Update favicon badge if supported
+    if ('setAppBadge' in navigator) {
+        if (unreadCount > 0) {
+            navigator.setAppBadge(unreadCount);
+        } else {
+            navigator.clearAppBadge();
+        }
     }
 }
 
-// Load notifications into UI
+function getNotificationIcon(type) {
+    const icons = {
+        'message': '💬',
+        'anniversary': '🎉',
+        'finance': '💰',
+        'memory': '📸',
+        'reminder': '⏰',
+        'achievement': '🏆',
+        'ai': '🤖'
+    };
+    return icons[type] || '📢';
+}
+
+// ============================================
+// LOAD NOTIFICATIONS
+// ============================================
+
 async function loadNotifications() {
     const container = document.getElementById('notifications-list');
     if (!container) return;
@@ -182,7 +215,7 @@ async function loadNotifications() {
     unreadCount = notifications.filter(n => !n.read).length;
 
     if (notifications.length === 0) {
-        container.innerHTML = '<p class="empty-state">No notifications yet</p>';
+        container.innerHTML = '<p class="empty-state">Belum ada notifikasi</p>';
         return;
     }
 
@@ -215,31 +248,16 @@ async function loadNotifications() {
     updateNotificationBadge();
 }
 
-// Get notification icon by type
-function getNotificationIcon(type) {
-    const icons = {
-        'message': '💬',
-        'anniversary': '🎉',
-        'finance': '💰',
-        'memory': '📸',
-        'reminder': '⏰',
-        'achievement': '🏆',
-        'ai': '🤖'
-    };
-    return icons[type] || '📢';
-}
+// ============================================
+// INIT
+// ============================================
 
-// Initialize notifications
 document.addEventListener('DOMContentLoaded', async () => {
-    // Request permission
     await requestNotificationPermission();
-
-    // Load notifications
     await loadNotifications();
 
     // Subscribe to new notifications
     subscribeToNotifications((notification) => {
-        // Add to UI
         const container = document.getElementById('notifications-list');
         if (!container) return;
 
@@ -251,7 +269,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             <div class="notification-content">
                 <div class="notification-title">${notification.title}</div>
                 <div class="notification-message">${notification.message}</div>
-                <div class="notification-time">just now</div>
+                <div class="notification-time">baru saja</div>
             </div>
             <button class="mark-read-btn">✓</button>
         `;
@@ -260,10 +278,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         unreadCount++;
         updateNotificationBadge();
 
-        // Send browser notification
         sendBrowserNotification(notification.title, notification.message);
-
-        // Show toast
         showToast(`${notification.title}: ${notification.message}`, 'info');
     });
 
@@ -272,25 +287,26 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (notifyBtn) {
         notifyBtn.addEventListener('click', () => {
             // Toggle notification panel or navigate
-            window.location.href = '/notifications.html';
-        });
-    }
-
-    // Mark all as read button
-    const markAllBtn = document.getElementById('mark-all-read');
-    if (markAllBtn) {
-        markAllBtn.addEventListener('click', async () => {
-            await markAllNotificationsAsRead();
-            loadNotifications();
-            showToast('All notifications marked as read', 'success');
+            const panel = document.getElementById('notifications-panel');
+            if (panel) {
+                panel.classList.toggle('open');
+            } else {
+                window.location.href = 'notifications.html';
+            }
         });
     }
 });
 
-// Export functions
+// ============================================
+// EXPORTS
+// ============================================
+
 window.addNotification = addNotification;
 window.getNotifications = getNotifications;
 window.markNotificationAsRead = markNotificationAsRead;
 window.markAllNotificationsAsRead = markAllNotificationsAsRead;
 window.loadNotifications = loadNotifications;
 window.requestNotificationPermission = requestNotificationPermission;
+window.updateNotificationBadge = updateNotificationBadge;
+
+console.log('✅ Notifications module loaded');

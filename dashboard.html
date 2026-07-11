@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="id">
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -19,12 +19,12 @@
         <main class="dashboard">
             <div class="dashboard-header">
                 <div class="greeting">
-                    <h1>Welcome back, <span id="user-name">💕</span></h1>
-                    <p id="relationship-status">Together since today</p>
+                    <h1>Selamat datang, <span id="user-name">💕</span></h1>
+                    <p id="relationship-status">Bersama sejak hari ini</p>
                 </div>
                 <div class="header-actions">
-                    <button class="icon-btn" id="notifications-btn" aria-label="Notifications">🔔</button>
-                    <button class="icon-btn" id="theme-toggle" aria-label="Toggle theme">🌙</button>
+                    <button class="icon-btn" id="notifications-btn" aria-label="Notifikasi">🔔</button>
+                    <button class="icon-btn" id="theme-toggle" aria-label="Ganti tema">🌙</button>
                 </div>
             </div>
 
@@ -33,29 +33,29 @@
                 <div class="stat-card glass">
                     <div class="stat-icon">❤️</div>
                     <div class="stat-content">
-                        <span class="stat-label">Love Level</span>
+                        <span class="stat-label">Level Cinta</span>
                         <span class="stat-value" id="love-level">Lv. 1</span>
                     </div>
                 </div>
                 <div class="stat-card glass">
                     <div class="stat-icon">🔥</div>
                     <div class="stat-content">
-                        <span class="stat-label">Day Streak</span>
-                        <span class="stat-value" id="day-streak">0 days</span>
+                        <span class="stat-label">Streak Hari</span>
+                        <span class="stat-value" id="day-streak">0 hari</span>
                     </div>
                 </div>
                 <div class="stat-card glass">
                     <div class="stat-icon">📅</div>
                     <div class="stat-content">
-                        <span class="stat-label">Together</span>
-                        <span class="stat-value" id="together-days">Day 1</span>
+                        <span class="stat-label">Bersama</span>
+                        <span class="stat-value together-days">Hari 1</span>
                     </div>
                 </div>
                 <div class="stat-card glass">
                     <div class="stat-icon">⭐</div>
                     <div class="stat-content">
                         <span class="stat-label">XP</span>
-                        <span class="stat-value" id="user-xp">0 XP</span>
+                        <span class="stat-value user-xp">0 XP</span>
                     </div>
                 </div>
             </div>
@@ -65,8 +65,8 @@
                 <button class="action-btn glass" data-action="chat">💬 Chat</button>
                 <button class="action-btn glass" data-action="memory">📸 Memory</button>
                 <button class="action-btn glass" data-action="finance">💰 Finance</button>
-                <button class="action-btn glass" data-action="calendar">📅 Calendar</button>
                 <button class="action-btn glass" data-action="ai">🤖 AI</button>
+                <button class="action-btn glass" data-action="calendar">📅 Calendar</button>
             </div>
 
             <!-- Widgets -->
@@ -74,12 +74,12 @@
                 <!-- Quote Widget -->
                 <div class="widget glass">
                     <div class="widget-header">
-                        <h3>✨ Daily Inspiration</h3>
+                        <h3>✨ Inspirasi Harian</h3>
                         <button class="refresh-btn" id="refresh-quote">🔄</button>
                     </div>
                     <div class="widget-content">
-                        <blockquote id="daily-quote">
-                            "Love is the bridge between two hearts."
+                        <blockquote id="daily-quote" style="font-style: italic; color: var(--text-secondary);">
+                            "Cinta adalah jembatan antara dua hati."
                         </blockquote>
                     </div>
                 </div>
@@ -87,16 +87,16 @@
                 <!-- Partner Status -->
                 <div class="widget glass">
                     <div class="widget-header">
-                        <h3>💑 Partner</h3>
+                        <h3>💑 Pasangan</h3>
                     </div>
                     <div class="widget-content">
                         <div id="partner-status">
-                            <div class="status-item">
+                            <div class="status-item" style="display: flex; align-items: center; gap: 0.5rem; padding: 0.25rem 0;">
                                 <span class="status-dot online"></span>
                                 <span id="partner-name">Loading...</span>
                             </div>
-                            <div class="status-item">
-                                <span>Last seen: <span id="partner-last-seen">Just now</span></span>
+                            <div class="status-item" style="padding: 0.25rem 0; font-size: 0.85rem; color: var(--text-secondary);">
+                                <span>Terakhir: <span id="partner-last-seen" class="partner-last-seen">Baru saja</span></span>
                             </div>
                         </div>
                     </div>
@@ -105,22 +105,22 @@
                 <!-- Recent Memories -->
                 <div class="widget glass">
                     <div class="widget-header">
-                        <h3>📸 Recent Memories</h3>
-                        <a href="memories.html" class="view-all">View All</a>
+                        <h3>📸 Kenangan Terbaru</h3>
+                        <a href="memories.html" class="view-all">Lihat Semua</a>
                     </div>
                     <div class="widget-content" id="recent-memories">
-                        <p class="empty-state">No memories yet. Start creating!</p>
+                        <p class="empty-state">Belum ada kenangan. Mulai buat!</p>
                     </div>
                 </div>
 
                 <!-- Upcoming Events -->
                 <div class="widget glass">
                     <div class="widget-header">
-                        <h3>📅 Upcoming</h3>
-                        <a href="calendar.html" class="view-all">View All</a>
+                        <h3>📅 Mendatang</h3>
+                        <a href="calendar.html" class="view-all">Lihat Semua</a>
                     </div>
                     <div class="widget-content" id="upcoming-events">
-                        <p class="empty-state">No upcoming events</p>
+                        <p class="empty-state">Tidak ada event mendatang</p>
                     </div>
                 </div>
             </div>
@@ -140,9 +140,9 @@
                 <span class="nav-icon">📸</span>
                 <span class="nav-label">Memories</span>
             </a>
-            <a href="finance.html" class="nav-item">
-                <span class="nav-icon">💰</span>
-                <span class="nav-label">Finance</span>
+            <a href="ai.html" class="nav-item">
+                <span class="nav-icon">🤖</span>
+                <span class="nav-label">AI</span>
             </a>
             <a href="settings.html" class="nav-item">
                 <span class="nav-icon">⚙️</span>

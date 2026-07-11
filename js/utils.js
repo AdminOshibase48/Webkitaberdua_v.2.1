@@ -2,103 +2,160 @@
 // UTILITY FUNCTIONS
 // ============================================
 
-// Toast notification
-window.showToast = function(message, type = 'info', duration = 3000) {
-    const existing = document.querySelector('.toast');
-    if (existing) existing.remove();
+// ============================================
+// CLIPBOARD & SHARING
+// ============================================
 
-    const toast = document.createElement('div');
-    toast.className = `toast ${type}`;
-    toast.textContent = message;
-
-    document.body.appendChild(toast);
-
-    requestAnimationFrame(() => {
-        toast.classList.add('show');
-    });
-
-    setTimeout(() => {
-        toast.classList.remove('show');
-        setTimeout(() => {
-            toast.remove();
-        }, 500);
-    }, duration);
-};
-
-// Format currency
-window.formatCurrency = function(amount) {
-    return `Rp ${parseFloat(amount).toLocaleString()}`;
-};
-
-// Format date
-window.formatDate = function(date, format = 'short') {
-    const d = new Date(date);
-    if (format === 'short') {
-        return d.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
-    } else if (format === 'long') {
-        return d.toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+function copyToClipboard(text) {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+        return navigator.clipboard.writeText(text);
     }
-    return d.toLocaleDateString();
-};
 
-// Time ago
-window.timeAgo = function(date) {
-    const now = new Date();
-    const diff = now - new Date(date);
-    const seconds = Math.floor(diff / 1000);
-    const minutes = Math.floor(seconds / 60);
-    const hours = Math.floor(minutes / 60);
-    const days = Math.floor(hours / 24);
+    // Fallback
+    const textarea = document.createElement('textarea');
+    textarea.value = text;
+    textarea.style.position = 'fixed';
+    textarea.style.opacity = '0';
+    document.body.appendChild(textarea);
+    textarea.select();
+    document.execCommand('copy');
+    textarea.remove();
+    return Promise.resolve();
+}
 
-    if (seconds < 60) return 'just now';
-    if (minutes < 60) return `${minutes}m ago`;
-    if (hours < 24) return `${hours}h ago`;
-    if (days < 30) return `${days}d ago`;
-    return `${Math.floor(days / 30)}mo ago`;
-};
+function shareData(data) {
+    if (navigator.share) {
+        return navigator.share(data);
+    }
+    return Promise.reject(new Error('Web Share API not supported'));
+}
 
-// Generate ID
-window.generateId = function() {
-    return Math.random().toString(36).substring(2, 15);
-};
+// ============================================
+// URL HELPERS
+// ============================================
 
-// Debounce
-window.debounce = function(func, wait = 300) {
-    let timeout;
-    return function(...args) {
-        clearTimeout(timeout);
-        timeout = setTimeout(() => func.apply(this, args), wait);
+function getQueryParam(param) {
+    const urlParams = new URLSearchParams(window.location.search);
+    return urlParams.get(param);
+}
+
+function setQueryParam(param, value) {
+    const url = new URL(window.location);
+    url.searchParams.set(param, value);
+    window.history.replaceState({}, '', url);
+}
+
+function removeQueryParam(param) {
+    const url = new URL(window.location);
+    url.searchParams.delete(param);
+    window.history.replaceState({}, '', url);
+}
+
+// ============================================
+// NUMBER FORMATTING
+// ============================================
+
+function formatNumberWithSuffix(num) {
+    if (num >= 1e9) return (num / 1e9).toFixed(1) + 'B';
+    if (num >= 1e6) return (num / 1e6).toFixed(1) + 'M';
+    if (num >= 1e3) return (num / 1e3).toFixed(1) + 'K';
+    return num.toString();
+}
+
+function randomColor() {
+    const colors = [
+        '#ff6b9d', '#c44dff', '#ffd700', '#34c759',
+        '#007aff', '#ff9500', '#ff3b30', '#5856d6',
+        '#ff2d92', '#64d2ff', '#ffb900', '#30d158'
+    ];
+    return colors[Math.floor(Math.random() * colors.length)];
+}
+
+// ============================================
+// EMOJI HELPERS
+// ============================================
+
+function getMoodEmoji(mood) {
+    const moods = {
+        'happy': '😊',
+        'sad': '😢',
+        'angry': '😡',
+        'love': '❤️',
+        'excited': '🤩',
+        'tired': '😴',
+        'stressed': '😰',
+        'calm': '😌',
+        'grateful': '🙏',
+        'hopeful': '🌟'
     };
-};
+    return moods[mood] || '💕';
+}
 
-// Is mobile
-window.isMobile = function() {
-    return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-};
+function getLoveLanguageEmoji(language) {
+    const languages = {
+        'words': '💬',
+        'acts': '💪',
+        'gifts': '🎁',
+        'time': '⏰',
+        'touch': '🤗'
+    };
+    return languages[language] || '💕';
+}
 
-// Confetti
-window.showConfetti = function(count = 50) {
-    const colors = ['#ff6b9d', '#c44dff', '#ffd700', '#34c759', '#007aff', '#ff9500'];
+function getRelationshipStage(days) {
+    if (days < 30) return '🌱 Baru Bersama';
+    if (days < 90) return '🌷 Tumbuh Cinta';
+    if (days < 180) return '🌸 Hubungan Mendalam';
+    if (days < 365) return '🌺 Ikatan Kuat';
+    if (days < 730) return '🌹 Cinta Sejati';
+    if (days < 1095) return '💖 Jodoh';
+    return '💫 Cinta Abadi';
+}
 
-    for (let i = 0; i < count; i++) {
-        const confetti = document.createElement('div');
-        confetti.className = 'confetti';
-        confetti.style.left = Math.random() * 100 + 'vw';
-        confetti.style.top = '-10px';
-        confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
-        confetti.style.width = Math.random() * 8 + 4 + 'px';
-        confetti.style.height = Math.random() * 8 + 4 + 'px';
-        confetti.style.setProperty('--tx', (Math.random() - 0.5) * 200 + 'px');
-        confetti.style.setProperty('--ty', Math.random() * 500 + 200 + 'px');
-        confetti.style.animationDuration = Math.random() * 2 + 1 + 's';
-        confetti.style.animationDelay = Math.random() * 0.5 + 's';
+// ============================================
+// STRING HELPERS
+// ============================================
 
-        document.body.appendChild(confetti);
+function capitalizeFirst(text) {
+    if (!text) return '';
+    return text.charAt(0).toUpperCase() + text.slice(1);
+}
 
-        setTimeout(() => {
-            confetti.remove();
-        }, 3000);
+function slugify(text) {
+    return text
+        .toString()
+        .toLowerCase()
+        .trim()
+        .replace(/\s+/g, '-')
+        .replace(/[^\w\-]+/g, '')
+        .replace(/\-\-+/g, '-');
+}
+
+function randomString(length = 8) {
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    let result = '';
+    for (let i = 0; i < length; i++) {
+        result += chars.charAt(Math.floor(Math.random() * chars.length));
     }
-};
+    return result;
+}
 
-console.log('✅ Utils loaded');
+// ============================================
+// EXPORTS
+// ============================================
+
+window.copyToClipboard = copyToClipboard;
+window.shareData = shareData;
+window.getQueryParam = getQueryParam;
+window.setQueryParam = setQueryParam;
+window.removeQueryParam = removeQueryParam;
+window.formatNumberWithSuffix = formatNumberWithSuffix;
+window.randomColor = randomColor;
+window.getMoodEmoji = getMoodEmoji;
+window.getLoveLanguageEmoji = getLoveLanguageEmoji;
+window.getRelationshipStage = getRelationshipStage;
+window.capitalizeFirst = capitalizeFirst;
+window.slugify = slugify;
+window.randomString = randomString;
+
+console.log('✅ Utils module loaded');

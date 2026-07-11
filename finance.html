@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="id">
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Finance - OurStory Together</title>
+    <title>Keuangan - OurStory Together</title>
     <link rel="manifest" href="manifest.json" />
     <link rel="icon" href="favicon.ico" />
     <link rel="stylesheet" href="css/globals.css" />
@@ -17,43 +17,42 @@
     <div id="app">
         <header class="page-header glass">
             <button class="back-btn" onclick="window.location.href='dashboard.html'">←</button>
-            <h1>💰 Shared Finance</h1>
+            <h1>💰 Keuangan Bersama</h1>
             <div></div>
         </header>
 
         <!-- Finance Summary -->
         <div class="finance-summary">
             <div class="summary-card glass">
-                <span class="summary-label">Total Balance</span>
+                <span class="summary-label">Total Saldo</span>
                 <span class="summary-value" id="total-balance">Rp 0</span>
             </div>
             <div class="summary-card glass">
-                <span class="summary-label">Monthly Income</span>
+                <span class="summary-label">Pemasukan Bulan Ini</span>
                 <span class="summary-value income" id="total-income">Rp 0</span>
             </div>
             <div class="summary-card glass">
-                <span class="summary-label">Monthly Expenses</span>
+                <span class="summary-label">Pengeluaran Bulan Ini</span>
                 <span class="summary-value expense" id="total-expense">Rp 0</span>
             </div>
             <div class="summary-card glass">
-                <span class="summary-label">Savings</span>
+                <span class="summary-label">Tabungan</span>
                 <span class="summary-value savings" id="total-savings">Rp 0</span>
             </div>
         </div>
 
         <!-- Quick Actions -->
-        <div class="finance-actions">
-            <button class="action-btn glass" id="add-income">+ Income</button>
-            <button class="action-btn glass" id="add-expense">- Expense</button>
-            <button class="action-btn glass" id="add-savings">💾 Savings</button>
-            <button class="action-btn glass" id="add-budget">📊 Budget</button>
+        <div class="finance-actions" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); gap: 0.5rem; padding: 0 0.75rem; max-width: 1200px; margin: 0 auto;">
+            <button class="action-btn glass" id="add-income">+ Pemasukan</button>
+            <button class="action-btn glass" id="add-expense">- Pengeluaran</button>
+            <button class="action-btn glass" id="add-savings">💾 Tabungan</button>
         </div>
 
         <!-- Recent Transactions -->
         <div class="transactions glass">
-            <h3>Recent Transactions</h3>
+            <h3 style="margin-bottom: 0.75rem;">Transaksi Terbaru</h3>
             <div id="transactions-list">
-                <p class="empty-state">No transactions yet</p>
+                <p class="empty-state">Belum ada transaksi</p>
             </div>
         </div>
 
@@ -71,9 +70,9 @@
                 <span class="nav-icon">📸</span>
                 <span class="nav-label">Memories</span>
             </a>
-            <a href="finance.html" class="nav-item active">
-                <span class="nav-icon">💰</span>
-                <span class="nav-label">Finance</span>
+            <a href="ai.html" class="nav-item">
+                <span class="nav-icon">🤖</span>
+                <span class="nav-label">AI</span>
             </a>
             <a href="settings.html" class="nav-item">
                 <span class="nav-icon">⚙️</span>
@@ -82,33 +81,33 @@
         </nav>
     </div>
 
-    <!-- Modals -->
+    <!-- Transaction Modal -->
     <div id="transaction-modal" class="modal hidden">
         <div class="modal-content glass">
-            <h2 id="transaction-modal-title">Add Transaction</h2>
+            <h2 id="transaction-modal-title">Tambah Transaksi</h2>
             <form id="transaction-form">
                 <div class="form-group">
-                    <label for="transaction-type">Type</label>
+                    <label for="transaction-type">Tipe</label>
                     <select id="transaction-type" required>
-                        <option value="income">Income</option>
-                        <option value="expense">Expense</option>
-                        <option value="savings">Savings</option>
+                        <option value="income">Pemasukan</option>
+                        <option value="expense">Pengeluaran</option>
+                        <option value="savings">Tabungan</option>
                     </select>
                 </div>
                 <div class="form-group">
-                    <label for="transaction-amount">Amount (Rp)</label>
-                    <input type="number" id="transaction-amount" placeholder="0" required />
+                    <label for="transaction-amount">Jumlah (Rp)</label>
+                    <input type="number" id="transaction-amount" placeholder="0" required min="0" step="1000" />
                 </div>
                 <div class="form-group">
-                    <label for="transaction-category">Category</label>
-                    <input type="text" id="transaction-category" placeholder="e.g., Food, Rent, Salary" />
+                    <label for="transaction-category">Kategori</label>
+                    <input type="text" id="transaction-category" placeholder="e.g., Makanan, Sewa, Gaji" />
                 </div>
                 <div class="form-group">
-                    <label for="transaction-description">Description</label>
-                    <input type="text" id="transaction-description" placeholder="Description" />
+                    <label for="transaction-description">Deskripsi</label>
+                    <input type="text" id="transaction-description" placeholder="Deskripsi transaksi" />
                 </div>
-                <button type="submit" class="btn btn-primary btn-full">Save Transaction</button>
-                <button type="button" class="btn btn-secondary btn-full" id="close-modal">Cancel</button>
+                <button type="submit" class="btn btn-primary btn-full">Simpan Transaksi</button>
+                <button type="button" class="btn btn-secondary btn-full" id="close-modal" style="margin-top: 0.5rem;">Batal</button>
             </form>
         </div>
     </div>
@@ -117,9 +116,9 @@
     <script src="js/utils.js"></script>
     <script src="js/supabase.js"></script>
     <script src="js/auth.js"></script>
-    <script src="js/finance.js"></script>
     <script src="js/ui.js"></script>
     <script src="js/theme.js"></script>
+    <script src="js/finance.js"></script>
     <script src="js/app.js"></script>
 </body>
 </html>

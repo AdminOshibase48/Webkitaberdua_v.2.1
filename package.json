@@ -1,0 +1,16 @@
+{
+  "name": "ourstory-together",
+  "version": "1.0.0",
+  "description": "Premium couple app for modern relationships",
+  "scripts": {
+    "build": "echo 'No build needed'",
+    "start": "serve ."
+  },
+  "dependencies": {
+    "serve": "^14.2.0"
+  },
+  "devDependencies": {},
+  "engines": {
+    "node": ">=18"
+  }
+}

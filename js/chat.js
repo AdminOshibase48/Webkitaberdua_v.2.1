@@ -1,14 +1,19 @@
-// Chat functionality
+// ============================================
+// CHAT MODULE
+// ============================================
+
 let chatChannel = null;
 let currentMessages = [];
-let isTyping = false;
 let typingTimeout = null;
 
-// Send message
+// ============================================
+// SEND MESSAGE
+// ============================================
+
 async function sendMessage(content, type = 'text', metadata = {}) {
     try {
         const user = await getCurrentUser();
-        if (!user) return;
+        if (!user) return null;
 
         const message = {
             sender_id: user.id,
@@ -26,17 +31,21 @@ async function sendMessage(content, type = 'text', metadata = {}) {
 
         if (error) throw error;
 
-        // Update relationship XP
-        await addXP(5);
+        // Add XP for sending messages
+        await addXP(2);
 
         return data;
     } catch (error) {
         console.error('Send message error:', error);
+        showToast('Gagal mengirim pesan', 'error');
         return null;
     }
 }
 
-// Get messages
+// ============================================
+// GET MESSAGES
+// ============================================
+
 async function getMessages(limit = 50) {
     try {
         const user = await getCurrentUser();
@@ -58,9 +67,16 @@ async function getMessages(limit = 50) {
     }
 }
 
-// Subscribe to messages
+// ============================================
+// SUBSCRIBE TO MESSAGES
+// ============================================
+
 function subscribeToMessages(callback) {
     try {
+        if (chatChannel) {
+            chatChannel.unsubscribe();
+        }
+
         chatChannel = supabaseClient
             .channel('messages')
             .on(
@@ -94,7 +110,10 @@ function subscribeToMessages(callback) {
     }
 }
 
-// Send typing indicator
+// ============================================
+// TYPING INDICATOR
+// ============================================
+
 async function sendTypingIndicator() {
     try {
         const user = await getCurrentUser();
@@ -117,7 +136,10 @@ async function sendTypingIndicator() {
     }
 }
 
-// Delete message
+// ============================================
+// MESSAGE OPERATIONS
+// ============================================
+
 async function deleteMessage(messageId) {
     try {
         const { error } = await supabaseClient
@@ -133,7 +155,6 @@ async function deleteMessage(messageId) {
     }
 }
 
-// Edit message
 async function editMessage(messageId, newContent) {
     try {
         const { error } = await supabaseClient
@@ -152,7 +173,10 @@ async function editMessage(messageId, newContent) {
     }
 }
 
-// Render message
+// ============================================
+// RENDER MESSAGE
+// ============================================
+
 function renderMessage(message, isOwn) {
     const div = document.createElement('div');
     div.className = `message ${isOwn ? 'sent' : 'received'}`;
@@ -169,6 +193,7 @@ function renderMessage(message, isOwn) {
         img.alt = 'Image message';
         img.style.maxWidth = '100%';
         img.style.borderRadius = '12px';
+        img.loading = 'lazy';
         content.appendChild(img);
     } else if (message.type === 'gif') {
         const img = document.createElement('img');
@@ -176,12 +201,13 @@ function renderMessage(message, isOwn) {
         img.alt = 'GIF message';
         img.style.maxWidth = '100%';
         img.style.borderRadius = '12px';
+        img.loading = 'lazy';
         content.appendChild(img);
     }
 
     const time = document.createElement('div');
     time.className = 'message-time';
-    time.textContent = new Date(message.created_at).toLocaleTimeString();
+    time.textContent = formatDate(message.created_at, 'relative');
 
     div.appendChild(content);
     div.appendChild(time);
@@ -189,13 +215,25 @@ function renderMessage(message, isOwn) {
     return div;
 }
 
-// Load chat
+// ============================================
+// LOAD CHAT
+// ============================================
+
 async function loadChat() {
     const messagesContainer = document.getElementById('messages');
     if (!messagesContainer) return;
 
-    const messages = await getMessages();
+    const messages = await getMessages(50);
     messagesContainer.innerHTML = '';
+
+    if (messages.length === 0) {
+        messagesContainer.innerHTML = `
+            <div class="empty-state">
+                <p>Belum ada pesan. Mulai percakapan! 💬</p>
+            </div>
+        `;
+        return;
+    }
 
     messages.forEach(msg => {
         const isOwn = msg.sender_id === currentUser?.id;
@@ -210,65 +248,96 @@ async function loadChat() {
     }
 }
 
-// Initialize chat
+// ============================================
+// INIT CHAT
+// ============================================
+
 document.addEventListener('DOMContentLoaded', async () => {
     const messageInput = document.getElementById('message-input');
     const sendBtn = document.getElementById('send-btn');
 
-    if (messageInput && sendBtn) {
-        // Load messages
-        await loadChat();
+    if (!messageInput || !sendBtn) return;
 
-        // Subscribe to new messages
-        subscribeToMessages((message) => {
-            const isOwn = message.sender_id === currentUser?.id;
+    // Check auth
+    const user = await getCurrentUser();
+    if (!user) {
+        window.location.href = 'login.html';
+        return;
+    }
+
+    // Load messages
+    await loadChat();
+
+    // Subscribe to new messages
+    subscribeToMessages((message) => {
+        const isOwn = message.sender_id === currentUser?.id;
+        const element = renderMessage(message, isOwn);
+        document.getElementById('messages').appendChild(element);
+
+        const container = document.getElementById('messages-container');
+        if (container) {
+            container.scrollTop = container.scrollHeight;
+        }
+    });
+
+    // Send message
+    const sendMessageHandler = async () => {
+        const content = messageInput.value.trim();
+        if (!content) return;
+
+        const message = await sendMessage(content);
+        if (message) {
+            messageInput.value = '';
+            const isOwn = true;
             const element = renderMessage(message, isOwn);
             document.getElementById('messages').appendChild(element);
 
-            // Scroll to bottom
             const container = document.getElementById('messages-container');
             if (container) {
                 container.scrollTop = container.scrollHeight;
             }
-        });
+        }
+    };
 
-        // Send message
-        const sendMessageHandler = async () => {
-            const content = messageInput.value.trim();
-            if (!content) return;
+    sendBtn.addEventListener('click', sendMessageHandler);
+    messageInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            sendMessageHandler();
+        }
+    });
 
-            const message = await sendMessage(content);
-            if (message) {
-                messageInput.value = '';
-                const isOwn = true;
-                const element = renderMessage(message, isOwn);
-                document.getElementById('messages').appendChild(element);
+    // Typing indicator
+    messageInput.addEventListener('input', debounce(() => {
+        sendTypingIndicator();
+    }, 500));
 
-                const container = document.getElementById('messages-container');
-                if (container) {
-                    container.scrollTop = container.scrollHeight;
+    // Partner typing indicator subscription
+    const partner = await getPartnerProfile();
+    if (partner) {
+        subscribeToPresence(partner.id, (profile) => {
+            const indicator = document.getElementById('typing-indicator');
+            if (indicator) {
+                if (profile.is_typing) {
+                    indicator.classList.remove('hidden');
+                } else {
+                    indicator.classList.add('hidden');
                 }
             }
-        };
-
-        sendBtn.addEventListener('click', sendMessageHandler);
-        messageInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') {
-                sendMessageHandler();
-            }
-        });
-
-        // Typing indicator
-        messageInput.addEventListener('input', () => {
-            sendTypingIndicator();
         });
     }
 });
 
-// Export functions
+// ============================================
+// EXPORTS
+// ============================================
+
 window.sendMessage = sendMessage;
 window.getMessages = getMessages;
 window.subscribeToMessages = subscribeToMessages;
 window.deleteMessage = deleteMessage;
 window.editMessage = editMessage;
 window.loadChat = loadChat;
+window.sendTypingIndicator = sendTypingIndicator;
+
+console.log('✅ Chat module loaded');

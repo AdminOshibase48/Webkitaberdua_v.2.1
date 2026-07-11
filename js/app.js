@@ -1,54 +1,124 @@
 // ============================================
-// MAIN APPLICATION
+// MAIN APPLICATION - app.js
 // ============================================
 
-// Init app
-window.initApp = async function() {
+// Initialize app
+async function initApp() {
     console.log('💕 OurStory Together - Starting up...');
 
-    const user = await window.getCurrentUser();
-    const currentPath = window.location.pathname.split('/').pop() || 'index.html';
+    try {
+        // Check authentication
+        const user = await getCurrentUser();
 
-    // Auth pages - redirect if logged in
-    const authPages = ['login.html', 'register.html', 'index.html'];
-    if (user && authPages.includes(currentPath)) {
-        window.location.href = 'dashboard.html';
-        return;
-    }
+        // Get current page
+        const currentPath = window.location.pathname.split('/').pop() || 'index.html';
 
-    // Protected pages - redirect if not logged in
-    const protectedPages = ['dashboard.html', 'chat.html', 'finance.html', 'memories.html', 'calendar.html', 'settings.html', 'ai.html'];
-    if (!user && protectedPages.includes(currentPath)) {
-        window.location.href = 'login.html';
-        return;
-    }
+        // Auth pages
+        const authPages = ['login.html', 'register.html'];
+        
+        // Protected pages
+        const protectedPages = [
+            'dashboard.html', 'chat.html', 'finance.html', 
+            'memories.html', 'calendar.html', 'settings.html', 'ai.html'
+        ];
 
-    // Load user data
-    if (user) {
-        window.currentUser = user;
-        window.currentUserProfile = await window.getUserProfile();
-        window.partnerProfile = await window.getPartnerProfile();
-        window.relationshipData = await window.getRelationship();
-
-        await window.updatePresence('online');
-        window.updateUIWithUserData();
-        window.updateRelationshipCounter();
-        window.updateXPDisplay();
-
-        // Partner presence subscription
-        if (window.currentUserProfile?.partner_id) {
-            window.subscribeToPresence(window.currentUserProfile.partner_id, (profile) => {
-                document.querySelectorAll('.partner-status').forEach(el => {
-                    if (el) {
-                        el.textContent = profile.status === 'online' ? 'Online' : 'Offline';
-                        el.className = `partner-status ${profile.status}`;
-                    }
-                });
-            });
+        // Redirect logic
+        if (user && authPages.includes(currentPath)) {
+            window.location.href = 'dashboard.html';
+            return;
         }
+
+        if (!user && protectedPages.includes(currentPath)) {
+            window.location.href = 'login.html';
+            return;
+        }
+
+        // Load user data if logged in
+        if (user) {
+            currentUser = user;
+            currentUserProfile = await getUserProfile();
+            await getPartnerProfile();
+            await getRelationship();
+
+            // Update presence
+            await updatePresence('online');
+
+            // Set up presence subscription
+            if (currentUserProfile?.partner_id) {
+                subscribeToPresence(currentUserProfile.partner_id, (profile) => {
+                    updatePartnerStatusUI(profile);
+                });
+            }
+
+            // Update UI with user data
+            updateUIWithUserData();
+        }
+
+        // Setup UI
+        setupUI();
+
+        // Setup quick actions
+        setupQuickActions();
+
+        // Setup theme
+        setupTheme();
+
+        console.log('✅ OurStory Together - Ready!');
+
+    } catch (error) {
+        console.error('❌ App initialization error:', error);
+        showToast('Error loading app. Please refresh.', 'error');
+    }
+}
+
+// ============================================
+// SETUP UI
+// ============================================
+
+function setupUI() {
+    // Load daily quote
+    loadDailyQuote();
+
+    // Update relationship counter
+    updateRelationshipCounter();
+
+    // Update XP display
+    updateXPDisplay();
+
+    // Setup back buttons
+    document.querySelectorAll('.back-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            if (window.history.length > 1) {
+                window.history.back();
+            } else {
+                window.location.href = 'dashboard.html';
+            }
+        });
+    });
+
+    // Setup mobile menu
+    const menuBtn = document.querySelector('.mobile-menu-btn');
+    if (menuBtn) {
+        menuBtn.addEventListener('click', () => {
+            const nav = document.querySelector('.nav-links');
+            if (nav) nav.classList.toggle('open');
+        });
     }
 
-    // Setup quick actions
+    // Close mobile menu on link click
+    document.querySelectorAll('.nav-links a').forEach(link => {
+        link.addEventListener('click', () => {
+            const nav = document.querySelector('.nav-links');
+            if (nav) nav.classList.remove('open');
+        });
+    });
+}
+
+// ============================================
+// SETUP QUICK ACTIONS
+// ============================================
+
+function setupQuickActions() {
     document.querySelectorAll('.action-btn[data-action]').forEach(btn => {
         btn.addEventListener('click', () => {
             const action = btn.dataset.action;
@@ -66,59 +136,96 @@ window.initApp = async function() {
         });
     });
 
-    // Set active nav
+    // Setup bottom navigation active state
+    const currentPage = window.location.pathname.split('/').pop();
     document.querySelectorAll('.bottom-nav .nav-item').forEach(item => {
         const href = item.getAttribute('href');
-        if (href === currentPath) {
+        if (href === currentPage) {
             item.classList.add('active');
+        } else {
+            item.classList.remove('active');
+        }
+    });
+}
+
+// ============================================
+// SETUP THEME
+// ============================================
+
+function setupTheme() {
+    // Theme toggle
+    const themeToggle = document.getElementById('theme-toggle');
+    if (themeToggle) {
+        themeToggle.addEventListener('click', () => {
+            const currentTheme = document.documentElement.getAttribute('data-theme');
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            applyTheme(newTheme);
+            themeToggle.textContent = newTheme === 'dark' ? '☀️' : '🌙';
+        });
+    }
+
+    // Dark mode toggle in settings
+    const darkModeToggle = document.getElementById('dark-mode-toggle');
+    if (darkModeToggle) {
+        darkModeToggle.addEventListener('change', (e) => {
+            const theme = e.target.checked ? 'dark' : 'light';
+            applyTheme(theme);
+        });
+    }
+}
+
+// ============================================
+// UPDATE UI FUNCTIONS
+// ============================================
+
+function updateUIWithUserData() {
+    if (!currentUser) return;
+
+    // Update user name
+    document.querySelectorAll('#user-name, .user-name').forEach(el => {
+        el.textContent = currentUserProfile?.full_name || currentUser.email;
+    });
+
+    // Update user email
+    document.querySelectorAll('#user-email').forEach(el => {
+        el.textContent = currentUser.email;
+    });
+
+    // Update partner name
+    if (partnerProfile) {
+        document.querySelectorAll('#partner-name, .partner-name').forEach(el => {
+            el.textContent = partnerProfile.full_name;
+        });
+    }
+
+    // Update relationship data
+    if (relationshipData) {
+        const startDate = new Date(relationshipData.start_date);
+        const now = new Date();
+        const diffDays = Math.ceil((now - startDate) / (1000 * 60 * 60 * 24));
+
+        document.querySelectorAll('#together-days, .together-days').forEach(el => {
+            el.textContent = `${diffDays} days`;
+        });
+
+        const statusEl = document.querySelector('#relationship-status');
+        if (statusEl) {
+            statusEl.textContent = `Together since ${startDate.toLocaleDateString()}`;
+        }
+    }
+}
+
+function updatePartnerStatusUI(profile) {
+    if (!profile) return;
+
+    document.querySelectorAll('.partner-status').forEach(el => {
+        if (profile.status === 'online') {
+            el.textContent = 'Online';
+            el.className = 'partner-status online';
+        } else {
+            el.textContent = 'Offline';
+            el.className = 'partner-status offline';
         }
     });
 
-    console.log('✅ App ready!');
-};
-
-// DOM Ready
-document.addEventListener('DOMContentLoaded', () => {
-    // Page enter animation
-    document.body.classList.add('page-enter');
-
-    // Back buttons
-    document.querySelectorAll('.back-btn').forEach(btn => {
-        btn.addEventListener('click', () => {
-            if (window.history.length > 1) {
-                window.history.back();
-            } else {
-                window.location.href = 'dashboard.html';
-            }
-        });
-    });
-
-    // Init app
-    window.initApp();
-});
-
-// Handle visibility change
-document.addEventListener('visibilitychange', () => {
-    if (document.hidden) {
-        window.updatePresence('away');
-    } else {
-        window.updatePresence('online');
-    }
-});
-
-// Handle beforeunload
-window.addEventListener('beforeunload', () => {
-    window.updatePresence('offline');
-});
-
-// Error handling
-window.addEventListener('error', (e) => {
-    console.error('Application error:', e.error);
-    window.showToast('Something went wrong. Please try again.', 'error');
-});
-
-window.addEventListener('unhandledrejection', (e) => {
-    console.error('Unhandled rejection:', e.reason);
-});
-
-console.log('✅ App module loaded');
+    document.querySelectorAll('.partner

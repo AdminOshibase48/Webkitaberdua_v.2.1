@@ -8,12 +8,13 @@
 
 // Ambil dari environment variables atau fallback
 const SUPABASE_URL = 'https://kqdzhajnkrjhryilaqdu.supabase.co';
-const SUPABASE_ANON_KEY = 'sb_publishable_f7R-mvQIWT5wKgdBGYyi8w_6vfH2WbM
+const SUPABASE_ANON_KEY = 'sb_publishable_f7R-mvQIWT5wKgdBGYyi8w_6vfH2WbM';
 
 console.log('🔗 Supabase URL:', SUPABASE_URL ? '✅ Set' : '❌ Missing');
+console.log('🔑 Supabase Anon Key:', SUPABASE_ANON_KEY ? '✅ Set' : '❌ Missing');
 
 // ============================================
-// STEP 2: INITIALIZE CLIENT - PASTIKAN INI PERTAMA KALI
+// STEP 2: INITIALIZE CLIENT
 // ============================================
 
 const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -160,6 +161,8 @@ function subscribeToPresence(userId, callback) {
 
 async function signUp(email, password, fullName, partnerEmail = null) {
     try {
+        console.log('📝 Signing up:', email);
+        
         const siteUrl = window.location.origin;
         
         const { data: { user }, error: signUpError } = await supabaseClient.auth.signUp({
@@ -175,6 +178,8 @@ async function signUp(email, password, fullName, partnerEmail = null) {
 
         if (signUpError) throw signUpError;
         if (!user) throw new Error('User creation failed');
+
+        console.log('✅ User created:', user.id);
 
         // Create profile
         const { error: profileError } = await supabaseClient
@@ -230,6 +235,8 @@ async function signUp(email, password, fullName, partnerEmail = null) {
 
 async function signIn(email, password) {
     try {
+        console.log('🔑 Signing in:', email);
+        
         const { data: { user }, error } = await supabaseClient.auth.signInWithPassword({
             email,
             password
@@ -241,6 +248,7 @@ async function signIn(email, password) {
         currentUser = user;
         await updatePresence('online');
 
+        console.log('✅ User signed in:', user.email);
         return { success: true, user };
     } catch (error) {
         console.error('Sign in error:', error);
@@ -250,6 +258,8 @@ async function signIn(email, password) {
 
 async function signOut() {
     try {
+        console.log('👋 Signing out...');
+        
         await updatePresence('offline');
         const { error } = await supabaseClient.auth.signOut();
         if (error) throw error;
@@ -259,6 +269,7 @@ async function signOut() {
         partnerProfile = null;
         relationshipData = null;
         
+        console.log('✅ Signed out');
         return { success: true };
     } catch (error) {
         console.error('Sign out error:', error);
@@ -434,9 +445,10 @@ supabaseClient.auth.onAuthStateChange((event, session) => {
 });
 
 // ============================================
-// STEP 7: EXPOSE FUNCTIONS
+// STEP 7: EXPOSE FUNCTIONS KE WINDOW
 // ============================================
 
+// PASTIKAN SEMUA FUNGSI DI-EXPORT KE WINDOW
 window.supabaseClient = supabaseClient;
 window.getCurrentUser = getCurrentUser;
 window.getUserProfile = getUserProfile;
@@ -452,4 +464,9 @@ window.resetPassword = resetPassword;
 window.addXP = addXP;
 
 console.log('✅ Supabase module loaded successfully');
-console.log(`🌐 Environment: ${window.location.hostname}`);
+console.log('📋 Functions exported to window:');
+console.log('  - signUp:', typeof window.signUp);
+console.log('  - signIn:', typeof window.signIn);
+console.log('  - signOut:', typeof window.signOut);
+console.log('  - resetPassword:', typeof window.resetPassword);
+console.log('  - getCurrentUser:', typeof window.getCurrentUser);

@@ -1,25 +1,27 @@
 // ============================================
-// SUPABASE CONFIGURATION - VERCEL READY
+// SUPABASE CONFIGURATION - FIXED VERSION
 // ============================================
 
-// Ambil dari environment variables Vercel dengan fallback
-const SUPABASE_URL = process?.env?.SUPABASE_URL || 
-                     window?.SUPABASE_URL || 
-                     'https://kqdzhajnkrjhryilaqdu.supabase.co';
+// ============================================
+// STEP 1: DEFINE CONFIGURATION
+// ============================================
 
-const SUPABASE_ANON_KEY = process?.env?.SUPABASE_ANON_KEY || 
-                          window?.SUPABASE_ANON_KEY || 
-                          'sb_publishable_f7R-mvQIWT5wKgdBGYyi8w_6vfH2WbM';
+// Ambil dari environment variables atau fallback
+const SUPABASE_URL = 'https://kqdzhajnkrjhryilaqdu.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_f7R-mvQIWT5wKgdBGYyi8w_6vfH2WbM
 
-// Log untuk debugging
 console.log('🔗 Supabase URL:', SUPABASE_URL ? '✅ Set' : '❌ Missing');
-console.log('🔑 Supabase Anon Key:', SUPABASE_ANON_KEY ? '✅ Set' : '❌ Missing');
 
-// Inisialisasi Supabase client
+// ============================================
+// STEP 2: INITIALIZE CLIENT - PASTIKAN INI PERTAMA KALI
+// ============================================
+
 const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+console.log('✅ Supabase client initialized');
+
 // ============================================
-// STATE
+// STEP 3: STATE
 // ============================================
 
 let currentUser = null;
@@ -29,7 +31,7 @@ let relationshipData = null;
 let authListeners = [];
 
 // ============================================
-// AUTH FUNCTIONS - (Sama seperti sebelumnya)
+// STEP 4: AUTH FUNCTIONS
 // ============================================
 
 async function getCurrentUser() {
@@ -153,7 +155,7 @@ function subscribeToPresence(userId, callback) {
 }
 
 // ============================================
-// AUTH OPERATIONS
+// STEP 5: AUTH OPERATIONS
 // ============================================
 
 async function signUp(email, password, fullName, partnerEmail = null) {
@@ -174,6 +176,7 @@ async function signUp(email, password, fullName, partnerEmail = null) {
         if (signUpError) throw signUpError;
         if (!user) throw new Error('User creation failed');
 
+        // Create profile
         const { error: profileError } = await supabaseClient
             .from('profiles')
             .insert({
@@ -186,6 +189,7 @@ async function signUp(email, password, fullName, partnerEmail = null) {
 
         if (profileError) throw profileError;
 
+        // Create user stats
         const { error: statsError } = await supabaseClient
             .from('user_stats')
             .insert({
@@ -197,6 +201,7 @@ async function signUp(email, password, fullName, partnerEmail = null) {
 
         if (statsError) throw statsError;
 
+        // Create relationship
         const { error: relationshipError } = await supabaseClient
             .from('relationships')
             .insert({
@@ -210,6 +215,7 @@ async function signUp(email, password, fullName, partnerEmail = null) {
 
         if (relationshipError) throw relationshipError;
 
+        // Link partner if email provided
         if (partnerEmail) {
             await linkPartner(user.id, partnerEmail);
         }
@@ -276,7 +282,7 @@ async function linkPartner(userId, partnerEmail) {
             throw new Error('Cannot link to yourself');
         }
 
-        const { data: existingRel, error: relError } = await supabaseClient
+        const { data: existingRel } = await supabaseClient
             .from('relationships')
             .select('*')
             .or(`user1_id.eq.${userId},user2_id.eq.${userId}`)
@@ -402,10 +408,12 @@ async function addXP(userId, amount) {
 }
 
 // ============================================
-// AUTH STATE CHANGE LISTENER
+// STEP 6: AUTH STATE CHANGE LISTENER
 // ============================================
 
 supabaseClient.auth.onAuthStateChange((event, session) => {
+    console.log('🔄 Auth state changed:', event);
+    
     if (event === 'SIGNED_IN') {
         currentUser = session?.user || null;
         if (currentUser) {
@@ -418,11 +426,15 @@ supabaseClient.auth.onAuthStateChange((event, session) => {
         partnerProfile = null;
         relationshipData = null;
         console.log('👋 User signed out');
+    } else if (event === 'TOKEN_REFRESHED') {
+        console.log('🔄 Token refreshed');
+    } else if (event === 'USER_UPDATED') {
+        console.log('🔄 User updated');
     }
 });
 
 // ============================================
-// EXPOSE FUNCTIONS
+// STEP 7: EXPOSE FUNCTIONS
 // ============================================
 
 window.supabaseClient = supabaseClient;
@@ -439,5 +451,5 @@ window.linkPartner = linkPartner;
 window.resetPassword = resetPassword;
 window.addXP = addXP;
 
-console.log('✅ Supabase module loaded');
+console.log('✅ Supabase module loaded successfully');
 console.log(`🌐 Environment: ${window.location.hostname}`);

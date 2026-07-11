@@ -1,111 +1,216 @@
 // ============================================
-// AUTH HANDLERS
+// AUTH HANDLERS - FIXED VERSION
 // ============================================
 
-// Handle login form
+// ============================================
+// PASTIKAN FUNGSI DARI SUPABASE.JS TERSEDIA
+// ============================================
+
+// Tunggu sampai supabase.js selesai loading
+document.addEventListener('DOMContentLoaded', () => {
+    console.log('📋 Auth.js initialized');
+    console.log('🔍 Checking supabase functions...');
+    console.log('✅ signUp:', typeof window.signUp);
+    console.log('✅ signIn:', typeof window.signIn);
+    console.log('✅ signOut:', typeof window.signOut);
+    console.log('✅ resetPassword:', typeof window.resetPassword);
+});
+
+// ============================================
+// LOGIN FORM HANDLER
+// ============================================
+
 document.addEventListener('DOMContentLoaded', () => {
     const loginForm = document.getElementById('login-form');
     if (loginForm) {
         loginForm.addEventListener('submit', async (e) => {
             e.preventDefault();
+            
             const email = document.getElementById('email')?.value;
             const password = document.getElementById('password')?.value;
 
             if (!email || !password) {
-                showToast('Please fill in all fields', 'error');
+                showToast('Mohon isi semua field', 'error');
                 return;
             }
 
-            const result = await signIn(email, password);
-            if (result.success) {
-                showToast('Welcome back! 💕', 'success');
-                window.location.href = 'dashboard.html';
-            } else {
-                showToast(result.error || 'Login failed', 'error');
+            // Cek apakah fungsi signIn tersedia
+            if (typeof window.signIn !== 'function') {
+                showToast('Error: Fungsi signIn tidak tersedia. Refresh halaman.', 'error');
+                console.error('❌ signIn function not found');
+                return;
+            }
+
+            try {
+                const result = await window.signIn(email, password);
+                if (result.success) {
+                    showToast('Selamat datang kembali! 💕', 'success');
+                    setTimeout(() => {
+                        window.location.href = 'dashboard.html';
+                    }, 500);
+                } else {
+                    showToast(result.error || 'Login gagal', 'error');
+                }
+            } catch (error) {
+                console.error('Login error:', error);
+                showToast('Terjadi kesalahan saat login', 'error');
             }
         });
     }
+});
 
-    // Register form
+// ============================================
+// REGISTER FORM HANDLER
+// ============================================
+
+document.addEventListener('DOMContentLoaded', () => {
     const registerForm = document.getElementById('register-form');
     if (registerForm) {
         registerForm.addEventListener('submit', async (e) => {
             e.preventDefault();
+            
             const fullName = document.getElementById('full-name')?.value;
             const email = document.getElementById('email')?.value;
             const password = document.getElementById('password')?.value;
             const partnerEmail = document.getElementById('partner-email')?.value || null;
 
             if (!fullName || !email || !password) {
-                showToast('Please fill in all fields', 'error');
+                showToast('Mohon isi semua field', 'error');
                 return;
             }
 
             if (password.length < 6) {
-                showToast('Password must be at least 6 characters', 'error');
+                showToast('Password minimal 6 karakter', 'error');
                 return;
             }
 
-            const result = await signUp(email, password, fullName, partnerEmail);
-            if (result.success) {
-                showToast('Account created successfully! 🎉', 'success');
-                window.location.href = 'dashboard.html';
-            } else {
-                showToast(result.error || 'Registration failed', 'error');
+            // Cek apakah fungsi signUp tersedia
+            if (typeof window.signUp !== 'function') {
+                showToast('Error: Fungsi signUp tidak tersedia. Refresh halaman.', 'error');
+                console.error('❌ signUp function not found');
+                return;
+            }
+
+            try {
+                const result = await window.signUp(email, password, fullName, partnerEmail);
+                if (result.success) {
+                    showToast('Akun berhasil dibuat! 🎉', 'success');
+                    setTimeout(() => {
+                        window.location.href = 'dashboard.html';
+                    }, 500);
+                } else {
+                    showToast(result.error || 'Registrasi gagal', 'error');
+                }
+            } catch (error) {
+                console.error('Register error:', error);
+                showToast('Terjadi kesalahan saat registrasi', 'error');
             }
         });
     }
+});
 
-    // Sign out button
+// ============================================
+// SIGN OUT HANDLER
+// ============================================
+
+document.addEventListener('DOMContentLoaded', () => {
     const signOutBtn = document.getElementById('sign-out');
     if (signOutBtn) {
         signOutBtn.addEventListener('click', async () => {
-            const result = await signOut();
-            if (result.success) {
-                showToast('Signed out 👋', 'success');
-                window.location.href = 'index.html';
-            } else {
-                showToast('Failed to sign out', 'error');
+            if (typeof window.signOut !== 'function') {
+                showToast('Error: Fungsi signOut tidak tersedia', 'error');
+                return;
+            }
+
+            try {
+                const result = await window.signOut();
+                if (result.success) {
+                    showToast('Berhasil keluar 👋', 'success');
+                    setTimeout(() => {
+                        window.location.href = 'index.html';
+                    }, 500);
+                } else {
+                    showToast(result.error || 'Gagal keluar', 'error');
+                }
+            } catch (error) {
+                console.error('Sign out error:', error);
+                showToast('Terjadi kesalahan', 'error');
             }
         });
     }
+});
 
-    // Password reset
+// ============================================
+// PASSWORD RESET HANDLER
+// ============================================
+
+document.addEventListener('DOMContentLoaded', () => {
     const forgotLink = document.querySelector('.forgot-password');
     if (forgotLink) {
         forgotLink.addEventListener('click', async (e) => {
             e.preventDefault();
-            const email = prompt('Enter your email to reset password:');
-            if (email) {
-                const result = await resetPassword(email);
+            
+            const email = prompt('Masukkan email Anda untuk reset password:');
+            if (!email) return;
+
+            if (typeof window.resetPassword !== 'function') {
+                showToast('Error: Fungsi resetPassword tidak tersedia', 'error');
+                return;
+            }
+
+            try {
+                const result = await window.resetPassword(email);
                 if (result.success) {
-                    showToast('Password reset email sent! 📧', 'success');
+                    showToast('Email reset password telah dikirim! 📧', 'success');
                 } else {
-                    showToast(result.error || 'Failed to send reset email', 'error');
+                    showToast(result.error || 'Gagal mengirim email reset', 'error');
                 }
+            } catch (error) {
+                console.error('Reset password error:', error);
+                showToast('Terjadi kesalahan', 'error');
             }
         });
     }
 });
 
 // ============================================
-// AUTH STATE CHANGE HANDLER
+// AUTH STATE MONITOR
 // ============================================
 
-supabaseClient.auth.onAuthStateChange((event, session) => {
-    if (event === 'SIGNED_IN') {
-        currentUser = session?.user || null;
-        if (currentUser) {
-            updatePresence('online');
-            console.log('✅ User signed in:', currentUser.email);
-        }
-    } else if (event === 'SIGNED_OUT') {
-        currentUser = null;
-        currentUserProfile = null;
-        partnerProfile = null;
-        relationshipData = null;
-        console.log('👋 User signed out');
+// Monitor perubahan auth state
+document.addEventListener('DOMContentLoaded', () => {
+    // Cek apakah user sudah login
+    if (typeof window.getCurrentUser === 'function') {
+        window.getCurrentUser().then(user => {
+            if (user) {
+                console.log('✅ User sudah login:', user.email);
+                
+                // Jika di halaman login/register, redirect ke dashboard
+                const currentPage = window.location.pathname.split('/').pop();
+                if (['login.html', 'register.html'].includes(currentPage)) {
+                    window.location.href = 'dashboard.html';
+                }
+            } else {
+                console.log('👤 User belum login');
+                
+                // Jika di halaman protected, redirect ke login
+                const protectedPages = ['dashboard.html', 'chat.html', 'finance.html', 
+                    'memories.html', 'calendar.html', 'settings.html', 'ai.html'];
+                const currentPage = window.location.pathname.split('/').pop();
+                if (protectedPages.includes(currentPage)) {
+                    window.location.href = 'login.html';
+                }
+            }
+        }).catch(error => {
+            console.error('Error checking auth:', error);
+        });
     }
 });
 
-console.log('✅ Auth module loaded');
+// ============================================
+// EXPOSE FUNCTIONS
+// ============================================
+
+// Tidak perlu expose karena sudah di supabase.js
+
+console.log('✅ Auth module loaded successfully');

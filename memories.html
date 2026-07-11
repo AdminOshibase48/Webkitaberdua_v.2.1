@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="id">
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Memories - OurStory Together</title>
+    <title>Kenangan - OurStory Together</title>
     <link rel="manifest" href="manifest.json" />
     <link rel="icon" href="favicon.ico" />
     <link rel="stylesheet" href="css/globals.css" />
@@ -16,22 +16,22 @@
 <body>
     <div id="app">
         <header class="page-header glass">
-            <button class="back-btn" onclick="window.location.href='/dashboard.html'">←</button>
-            <h1>📸 Our Memories</h1>
+            <button class="back-btn" onclick="window.location.href='dashboard.html'">←</button>
+            <h1>📸 Kenangan Kami</h1>
             <button class="icon-btn" id="add-memory-btn">➕</button>
         </header>
 
         <!-- Memory Filters -->
         <div class="memory-filters">
-            <button class="filter-btn active" data-filter="all">All</button>
-            <button class="filter-btn" data-filter="photo">📷 Photos</button>
-            <button class="filter-btn" data-filter="video">🎥 Videos</button>
-            <button class="filter-btn" data-filter="album">📁 Albums</button>
+            <button class="filter-btn active" data-filter="all">Semua</button>
+            <button class="filter-btn" data-filter="photo">📷 Foto</button>
+            <button class="filter-btn" data-filter="video">🎥 Video</button>
+            <button class="filter-btn" data-filter="album">📁 Album</button>
         </div>
 
         <!-- Memories Grid -->
         <div class="memories-grid" id="memories-grid">
-            <p class="empty-state">No memories yet. Start capturing your moments! 📸</p>
+            <p class="empty-state">Belum ada kenangan. Mulai abadikan momen! 📸</p>
         </div>
 
         <!-- Bottom Navigation -->
@@ -48,9 +48,9 @@
                 <span class="nav-icon">📸</span>
                 <span class="nav-label">Memories</span>
             </a>
-            <a href="finance.html" class="nav-item">
-                <span class="nav-icon">💰</span>
-                <span class="nav-label">Finance</span>
+            <a href="ai.html" class="nav-item">
+                <span class="nav-icon">🤖</span>
+                <span class="nav-label">AI</span>
             </a>
             <a href="settings.html" class="nav-item">
                 <span class="nav-icon">⚙️</span>
@@ -62,20 +62,20 @@
     <!-- Memory Upload Modal -->
     <div id="memory-modal" class="modal hidden">
         <div class="modal-content glass">
-            <h2>Add New Memory</h2>
+            <h2>Tambah Kenangan Baru</h2>
             <form id="memory-form">
                 <div class="form-group">
-                    <label for="memory-title">Title</label>
-                    <input type="text" id="memory-title" placeholder="Our special moment" required />
+                    <label for="memory-title">Judul</label>
+                    <input type="text" id="memory-title" placeholder="Momen spesial kita" required />
                 </div>
                 <div class="form-group">
-                    <label for="memory-description">Description</label>
-                    <textarea id="memory-description" placeholder="Tell the story..."></textarea>
+                    <label for="memory-description">Deskripsi</label>
+                    <textarea id="memory-description" placeholder="Ceritakan momennya..."></textarea>
                 </div>
                 <div class="form-group">
-                    <label for="memory-type">Type</label>
+                    <label for="memory-type">Tipe</label>
                     <select id="memory-type" required>
-                        <option value="photo">Photo</option>
+                        <option value="photo">Foto</option>
                         <option value="video">Video</option>
                         <option value="album">Album</option>
                     </select>
@@ -85,11 +85,11 @@
                     <input type="file" id="memory-file" accept="image/*,video/*" />
                 </div>
                 <div class="form-group">
-                    <label for="memory-date">Date</label>
+                    <label for="memory-date">Tanggal</label>
                     <input type="date" id="memory-date" required />
                 </div>
-                <button type="submit" class="btn btn-primary btn-full">Save Memory ✨</button>
-                <button type="button" class="btn btn-secondary btn-full" id="close-memory-modal">Cancel</button>
+                <button type="submit" class="btn btn-primary btn-full">Simpan Kenangan ✨</button>
+                <button type="button" class="btn btn-secondary btn-full" id="close-memory-modal" style="margin-top: 0.5rem;">Batal</button>
             </form>
         </div>
     </div>
@@ -98,9 +98,9 @@
     <script src="js/utils.js"></script>
     <script src="js/supabase.js"></script>
     <script src="js/auth.js"></script>
-    <script src="js/memories.js"></script>
     <script src="js/ui.js"></script>
     <script src="js/theme.js"></script>
+    <script src="js/memories.js"></script>
     <script src="js/app.js"></script>
 </body>
 </html>

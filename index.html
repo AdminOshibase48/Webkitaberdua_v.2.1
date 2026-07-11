@@ -2,17 +2,613 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes" />
     <title>OurStory Together - Aplikasi Couple Premium</title>
     <meta name="description" content="Aplikasi couple premium untuk memperdalam hubungan, merayakan perjalanan, dan membangun masa depan bersama." />
+    <meta name="theme-color" content="#ff6b9d" />
     <link rel="manifest" href="manifest.json" />
     <link rel="icon" href="favicon.ico" />
+    <link rel="apple-touch-icon" href="assets/icons/icon-192.png" />
+    
+    <!-- CSS -->
     <link rel="stylesheet" href="css/globals.css" />
     <link rel="stylesheet" href="css/theme.css" />
     <link rel="stylesheet" href="css/glass.css" />
     <link rel="stylesheet" href="css/components.css" />
     <link rel="stylesheet" href="css/responsive.css" />
     <link rel="stylesheet" href="css/animations.css" />
+    
+    <style>
+        /* ============================================
+           INDEX.HTML SPECIFIC STYLES
+           ============================================ */
+        
+        /* Hero Section */
+        .hero {
+            position: relative;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            padding: 80px 1.5rem 60px;
+            overflow: hidden;
+            background: linear-gradient(135deg, var(--bg-gradient-start), var(--bg-gradient-end));
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -20%;
+            width: 600px;
+            height: 600px;
+            background: radial-gradient(circle, rgba(255, 107, 157, 0.08) 0%, transparent 70%);
+            border-radius: 50%;
+            pointer-events: none;
+        }
+
+        .hero::after {
+            content: '';
+            position: absolute;
+            bottom: -30%;
+            left: -20%;
+            width: 500px;
+            height: 500px;
+            background: radial-gradient(circle, rgba(196, 77, 255, 0.06) 0%, transparent 70%);
+            border-radius: 50%;
+            pointer-events: none;
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 1;
+            max-width: 600px;
+        }
+
+        .hero-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.4rem 1rem;
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 50px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            margin-bottom: 1.5rem;
+            animation: fadeIn 0.8s ease-out;
+        }
+
+        .hero-badge .dot {
+            width: 6px;
+            height: 6px;
+            background: #34c759;
+            border-radius: 50%;
+            animation: pulse 1.5s ease-in-out infinite;
+        }
+
+        .hero-title {
+            font-size: clamp(2.8rem, 6vw, 4.5rem);
+            font-weight: 800;
+            line-height: 1.05;
+            letter-spacing: -0.03em;
+            margin-bottom: 1.25rem;
+            animation: fadeIn 0.8s ease-out 0.1s both;
+        }
+
+        .hero-title .gradient-text {
+            background: linear-gradient(135deg, #ff6b9d, #c44dff, #ff6b9d);
+            background-size: 200% 200%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: shimmer 4s ease-in-out infinite;
+        }
+
+        @keyframes shimmer {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+
+        .hero-description {
+            font-size: clamp(1rem, 1.2vw, 1.2rem);
+            color: var(--text-secondary);
+            max-width: 480px;
+            line-height: 1.8;
+            margin-bottom: 2rem;
+            animation: fadeIn 0.8s ease-out 0.2s both;
+        }
+
+        .hero-buttons {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            animation: fadeIn 0.8s ease-out 0.3s both;
+        }
+
+        .hero-buttons .btn {
+            padding: 0.9rem 2rem;
+            font-size: 1rem;
+            border-radius: 50px;
+        }
+
+        /* Hero Image */
+        .hero-visual {
+            position: relative;
+            z-index: 1;
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 400px;
+        }
+
+        .hero-phone {
+            position: relative;
+            width: 280px;
+            height: 560px;
+            background: var(--card-bg);
+            backdrop-filter: blur(30px);
+            border: 2px solid var(--glass-border);
+            border-radius: 40px;
+            padding: 12px;
+            box-shadow: 0 30px 80px rgba(0, 0, 0, 0.12);
+            animation: floatPhone 6s ease-in-out infinite;
+        }
+
+        @keyframes floatPhone {
+            0%, 100% { transform: translateY(0px) rotate(-2deg); }
+            50% { transform: translateY(-20px) rotate(2deg); }
+        }
+
+        .hero-phone-screen {
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, var(--bg-gradient-start), var(--bg-gradient-end));
+            border-radius: 32px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 1.5rem;
+        }
+
+        .phone-preview-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.6rem 1rem;
+            margin: 0.25rem 0;
+            background: var(--glass-bg);
+            backdrop-filter: blur(10px);
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--glass-border);
+            width: 100%;
+            animation: slideInRight 0.5s ease-out both;
+        }
+
+        .phone-preview-item:nth-child(1) { animation-delay: 0.1s; }
+        .phone-preview-item:nth-child(2) { animation-delay: 0.2s; }
+        .phone-preview-item:nth-child(3) { animation-delay: 0.3s; }
+        .phone-preview-item:nth-child(4) { animation-delay: 0.4s; }
+
+        .phone-preview-item .icon {
+            font-size: 1.2rem;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--glass-bg);
+            border-radius: 50%;
+        }
+
+        .phone-preview-item .text {
+            font-size: 0.75rem;
+            font-weight: 500;
+            color: var(--text-primary);
+        }
+
+        .phone-preview-item .text span {
+            color: var(--text-secondary);
+            font-weight: 400;
+            font-size: 0.7rem;
+        }
+
+        .phone-notch {
+            position: absolute;
+            top: 12px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 120px;
+            height: 28px;
+            background: var(--text-primary);
+            border-radius: 0 0 16px 16px;
+            z-index: 10;
+        }
+
+        .phone-notch::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 40px;
+            height: 6px;
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 4px;
+        }
+
+        /* Floating Elements */
+        .floating-element {
+            position: absolute;
+            font-size: 2.5rem;
+            animation: floatElement 8s ease-in-out infinite;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .floating-element:nth-child(1) {
+            top: 10%;
+            left: 5%;
+            animation-delay: 0s;
+            font-size: 3rem;
+        }
+        .floating-element:nth-child(2) {
+            top: 20%;
+            right: 8%;
+            animation-delay: 2s;
+            font-size: 2rem;
+        }
+        .floating-element:nth-child(3) {
+            bottom: 25%;
+            left: 3%;
+            animation-delay: 4s;
+            font-size: 2.8rem;
+        }
+        .floating-element:nth-child(4) {
+            bottom: 35%;
+            right: 5%;
+            animation-delay: 1s;
+            font-size: 2.2rem;
+        }
+
+        @keyframes floatElement {
+            0%, 100% { transform: translateY(0px) rotate(0deg) scale(1); }
+            50% { transform: translateY(-30px) rotate(10deg) scale(1.05); }
+        }
+
+        /* Features Section */
+        .features {
+            padding: 80px 1.5rem;
+            background: var(--bg-primary);
+        }
+
+        .features-header {
+            text-align: center;
+            max-width: 600px;
+            margin: 0 auto 3rem;
+        }
+
+        .features-header .tag {
+            display: inline-block;
+            padding: 0.3rem 1rem;
+            background: var(--glass-bg);
+            border-radius: 50px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            color: var(--accent-primary);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            margin-bottom: 0.75rem;
+        }
+
+        .features-header h2 {
+            font-size: clamp(2rem, 3.5vw, 2.8rem);
+            font-weight: 700;
+            margin-bottom: 0.75rem;
+        }
+
+        .features-header p {
+            color: var(--text-secondary);
+            font-size: 1.05rem;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 1.5rem;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .feature-card {
+            padding: 2rem 1.5rem;
+            background: var(--card-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--card-border);
+            border-radius: var(--radius);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            cursor: default;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .feature-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--color-primary), var(--color-secondary));
+            opacity: 0;
+            transition: opacity 0.4s ease;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-6px);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.08);
+        }
+
+        .feature-card:hover::before {
+            opacity: 1;
+        }
+
+        .feature-card .icon {
+            font-size: 2.5rem;
+            margin-bottom: 0.75rem;
+            display: inline-block;
+        }
+
+        .feature-card h3 {
+            font-size: 1.1rem;
+            margin-bottom: 0.4rem;
+        }
+
+        .feature-card p {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            line-height: 1.6;
+        }
+
+        /* Stats Section */
+        .stats-section {
+            padding: 60px 1.5rem;
+            background: var(--bg-primary);
+            border-top: 1px solid var(--card-border);
+            border-bottom: 1px solid var(--card-border);
+        }
+
+        .stats-grid-home {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 2rem;
+            max-width: 900px;
+            margin: 0 auto;
+            text-align: center;
+        }
+
+        .stat-item-home .number {
+            font-size: clamp(2.5rem, 4vw, 3.5rem);
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .stat-item-home .label {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            font-weight: 500;
+            margin-top: 0.25rem;
+        }
+
+        /* CTA Section */
+        .cta-section {
+            padding: 80px 1.5rem;
+            background: linear-gradient(135deg, var(--bg-gradient-start), var(--bg-gradient-end));
+        }
+
+        .cta-card {
+            max-width: 700px;
+            margin: 0 auto;
+            padding: 3rem 2.5rem;
+            text-align: center;
+            background: var(--card-bg);
+            backdrop-filter: blur(30px);
+            border: 1px solid var(--card-border);
+            border-radius: var(--radius);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.06);
+        }
+
+        .cta-card .emoji {
+            font-size: 3.5rem;
+            display: block;
+            margin-bottom: 0.75rem;
+        }
+
+        .cta-card h2 {
+            font-size: clamp(1.8rem, 3vw, 2.5rem);
+            margin-bottom: 0.5rem;
+        }
+
+        .cta-card p {
+            color: var(--text-secondary);
+            font-size: 1.05rem;
+            margin-bottom: 2rem;
+        }
+
+        .cta-card .btn {
+            padding: 0.9rem 2.5rem;
+            font-size: 1.05rem;
+            border-radius: 50px;
+        }
+
+        /* Footer */
+        .footer {
+            padding: 2rem 1.5rem;
+            text-align: center;
+            border-top: 1px solid var(--card-border);
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+        }
+
+        .footer .heart {
+            color: var(--color-primary);
+            display: inline-block;
+            animation: heartbeat 1.5s ease-in-out infinite;
+        }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .hero {
+                flex-direction: column;
+                padding: 100px 1.5rem 60px;
+                text-align: center;
+            }
+
+            .hero-content {
+                max-width: 100%;
+            }
+
+            .hero-description {
+                max-width: 100%;
+                margin-left: auto;
+                margin-right: auto;
+            }
+
+            .hero-buttons {
+                justify-content: center;
+            }
+
+            .hero-phone {
+                width: 220px;
+                height: 440px;
+                margin-top: 2rem;
+            }
+
+            .phone-preview-item .text {
+                font-size: 0.65rem;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .hero-phone {
+                width: 180px;
+                height: 360px;
+            }
+
+            .hero-phone-screen {
+                padding: 0.75rem;
+            }
+
+            .phone-preview-item {
+                padding: 0.4rem 0.6rem;
+            }
+
+            .phone-preview-item .icon {
+                font-size: 0.9rem;
+                width: 24px;
+                height: 24px;
+            }
+
+            .phone-preview-item .text {
+                font-size: 0.55rem;
+            }
+
+            .phone-notch {
+                width: 80px;
+                height: 20px;
+            }
+
+            .phone-notch::after {
+                width: 30px;
+                height: 4px;
+            }
+
+            .floating-element {
+                display: none;
+            }
+
+            .features-grid {
+                grid-template-columns: 1fr 1fr;
+                gap: 1rem;
+            }
+
+            .feature-card {
+                padding: 1.25rem;
+            }
+
+            .cta-card {
+                padding: 2rem 1.5rem;
+            }
+
+            .stats-grid-home {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 1.5rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .features-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .hero-buttons {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .hero-buttons .btn {
+                width: 100%;
+                max-width: 280px;
+                justify-content: center;
+            }
+
+            .hero-phone {
+                width: 150px;
+                height: 300px;
+            }
+
+            .phone-preview-item {
+                padding: 0.3rem 0.5rem;
+            }
+
+            .phone-preview-item .icon {
+                font-size: 0.7rem;
+                width: 20px;
+                height: 20px;
+            }
+
+            .phone-preview-item .text {
+                font-size: 0.5rem;
+            }
+
+            .phone-notch {
+                width: 60px;
+                height: 16px;
+                top: 8px;
+            }
+
+            .phone-notch::after {
+                width: 24px;
+                height: 3px;
+            }
+
+            .stats-grid-home {
+                grid-template-columns: 1fr 1fr;
+                gap: 1rem;
+            }
+
+            .stat-item-home .number {
+                font-size: 2rem;
+            }
+        }
+    </style>
 </head>
 <body>
     <div id="app">
@@ -24,10 +620,10 @@
                     <span class="logo-text">OurStory</span>
                 </div>
                 <div class="nav-links">
-                    <a href="#features">Features</a>
-                    <a href="#about">About</a>
-                    <a href="login.html" class="btn btn-outline">Sign In</a>
-                    <a href="register.html" class="btn btn-primary">Get Started</a>
+                    <a href="#features">Fitur</a>
+                    <a href="#about">Tentang</a>
+                    <a href="login.html" class="btn btn-outline">Masuk</a>
+                    <a href="register.html" class="btn btn-primary">Mulai</a>
                 </div>
                 <button class="mobile-menu-btn" aria-label="Menu">☰</button>
             </div>
@@ -35,96 +631,285 @@
 
         <!-- Hero Section -->
         <section class="hero">
+            <!-- Floating Elements -->
+            <div class="floating-element" style="top: 8%; left: 3%; font-size: 3rem;">💕</div>
+            <div class="floating-element" style="top: 15%; right: 5%; font-size: 2.5rem; animation-delay: 2s;">✨</div>
+            <div class="floating-element" style="bottom: 20%; left: 2%; font-size: 2.8rem; animation-delay: 4s;">🌹</div>
+            <div class="floating-element" style="bottom: 30%; right: 3%; font-size: 2.2rem; animation-delay: 1s;">💝</div>
+
             <div class="hero-content">
+                <div class="hero-badge">
+                    <span class="dot"></span>
+                    10,000+ Pasangan Percaya
+                </div>
                 <h1 class="hero-title">
-                    <span class="gradient-text">Love</span> in Every<br />
-                    <span class="gradient-text">Moment</span>
+                    <span class="gradient-text">Cinta</span> di Setiap<br />
+                    <span class="gradient-text">Momen</span>
                 </h1>
                 <p class="hero-description">
                     Aplikasi couple premium yang dirancang untuk memperdalam hubunganmu,
                     merayakan perjalanan cinta, dan membangun masa depan bersama.
+                    <span style="display: block; margin-top: 0.5rem; font-size: 0.9rem; color: var(--text-muted);">
+                        💡 Gratis selamanya untuk pasangan sejati
+                    </span>
                 </p>
                 <div class="hero-buttons">
-                    <a href="register.html" class="btn btn-primary btn-large">
+                    <a href="register.html" class="btn btn-primary">
                         Mulai Perjalanan ❤️
                     </a>
-                    <a href="#features" class="btn btn-outline btn-large">
+                    <a href="#features" class="btn btn-outline">
                         Lihat Fitur
                     </a>
                 </div>
             </div>
-            <div class="hero-image">
-                <div class="floating-cards">
-                    <div class="card-float card-1">💑</div>
-                    <div class="card-float card-2">💝</div>
-                    <div class="card-float card-3">✨</div>
-                    <div class="card-float card-4">🌹</div>
+
+            <div class="hero-visual">
+                <div class="hero-phone">
+                    <div class="phone-notch"></div>
+                    <div class="hero-phone-screen">
+                        <div class="phone-preview-item">
+                            <span class="icon">💬</span>
+                            <span class="text">Pesan dari <span>💕 Sayang</span></span>
+                        </div>
+                        <div class="phone-preview-item">
+                            <span class="icon">📸</span>
+                            <span class="text">Kenangan <span>• 2 foto baru</span></span>
+                        </div>
+                        <div class="phone-preview-item">
+                            <span class="icon">❤️</span>
+                            <span class="text">Level Cinta <span>• Lv. 12</span></span>
+                        </div>
+                        <div class="phone-preview-item">
+                            <span class="icon">🔥</span>
+                            <span class="text">Streak <span>• 45 hari 🔥</span></span>
+                        </div>
+                        <div class="phone-preview-item">
+                            <span class="icon">🤖</span>
+                            <span class="text">AI LoveGuide <span>• Siap membantu</span></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Stats Section -->
+        <section class="stats-section">
+            <div class="stats-grid-home">
+                <div class="stat-item-home">
+                    <div class="number" data-count="10000">10K+</div>
+                    <div class="label">Pasangan Bergabung</div>
+                </div>
+                <div class="stat-item-home">
+                    <div class="number" data-count="50000">50K+</div>
+                    <div class="label">Kenangan Tercipta</div>
+                </div>
+                <div class="stat-item-home">
+                    <div class="number" data-count="98">98%</div>
+                    <div class="label">Kepuasan Pengguna</div>
+                </div>
+                <div class="stat-item-home">
+                    <div class="number" data-count="365">365</div>
+                    <div class="label">Hari Setiap Tahun</div>
                 </div>
             </div>
         </section>
 
         <!-- Features Section -->
         <section id="features" class="features">
-            <div class="container">
-                <h2 class="section-title">Semua yang Kamu Butuhkan Bersama</h2>
-                <p class="section-subtitle">Dirancang untuk pasangan yang ingin tumbuh lebih kuat setiap hari</p>
-                <div class="features-grid">
-                    <div class="feature-card glass">
-                        <div class="feature-icon">💬</div>
-                        <h3>Real-time Chat</h3>
-                        <p>Stay connected dengan pesan instan, voice notes, dan berbagi media</p>
-                    </div>
-                    <div class="feature-card glass">
-                        <div class="feature-icon">💰</div>
-                        <h3>Keuangan Bersama</h3>
-                        <p>Lacak pemasukan, pengeluaran, tabungan, dan tujuan bersama secara real-time</p>
-                    </div>
-                    <div class="feature-card glass">
-                        <div class="feature-icon">📸</div>
-                        <h3>Kenangan Bersama</h3>
-                        <p>Buat album dan timeline indah dari momen-momen terbaik kalian</p>
-                    </div>
-                    <div class="feature-card glass">
-                        <div class="feature-icon">🤖</div>
-                        <h3>AI Assistant</h3>
-                        <p>Dapatkan saran hubungan, ide kencan, dan wawasan dari AI</p>
-                    </div>
-                    <div class="feature-card glass">
-                        <div class="feature-icon">📅</div>
-                        <h3>Kalender Bersama</h3>
-                        <p>Rencanakan kencan, atur pengingat, dan jangan pernah lewatkan anniversary</p>
-                    </div>
-                    <div class="feature-card glass">
-                        <div class="feature-icon">🏆</div>
-                        <h3>Gamifikasi</h3>
-                        <p>Dapatkan XP, buka lencana, dan naikkan level hubunganmu</p>
-                    </div>
+            <div class="features-header">
+                <span class="tag">✨ Fitur Premium</span>
+                <h2>Semua yang Kamu Butuhkan <span class="gradient-text">Bersama</span></h2>
+                <p>Dirancang untuk pasangan yang ingin tumbuh lebih kuat setiap hari</p>
+            </div>
+            <div class="features-grid">
+                <div class="feature-card glass">
+                    <span class="icon">💬</span>
+                    <h3>Real-time Chat</h3>
+                    <p>Stay connected dengan pesan instan, voice notes, dan berbagi media. Realtime tanpa delay.</p>
+                </div>
+                <div class="feature-card glass">
+                    <span class="icon">💰</span>
+                    <h3>Keuangan Bersama</h3>
+                    <p>Lacak pemasukan, pengeluaran, tabungan, dan tujuan keuangan bersama secara real-time.</p>
+                </div>
+                <div class="feature-card glass">
+                    <span class="icon">📸</span>
+                    <h3>Kenangan Abadi</h3>
+                    <p>Buat album dan timeline indah dari momen-momen terbaik kalian. Simpan selamanya.</p>
+                </div>
+                <div class="feature-card glass">
+                    <span class="icon">🤖</span>
+                    <h3>AI LoveGuide</h3>
+                    <p>Dapatkan saran hubungan, ide kencan, dan wawasan dari AI yang memahami hubunganmu.</p>
+                </div>
+                <div class="feature-card glass">
+                    <span class="icon">📅</span>
+                    <h3>Kalender Bersama</h3>
+                    <p>Rencanakan kencan, atur pengingat, dan jangan pernah lewatkan anniversary spesial.</p>
+                </div>
+                <div class="feature-card glass">
+                    <span class="icon">🏆</span>
+                    <h3>Gamifikasi Cinta</h3>
+                    <p>Dapatkan XP, buka lencana, naikkan level hubungan, dan rayakan setiap pencapaian.</p>
                 </div>
             </div>
         </section>
 
         <!-- CTA Section -->
-        <section class="cta">
-            <div class="container">
-                <div class="cta-content glass">
-                    <h2>Siap Menulis Ceritamu?</h2>
-                    <p>Bergabunglah dengan ribuan pasangan yang memperdalam hubungan mereka setiap hari</p>
-                    <a href="register.html" class="btn btn-primary btn-large">
-                        Mulai Gratis ✨
-                    </a>
-                </div>
+        <section class="cta-section">
+            <div class="cta-card glass">
+                <span class="emoji">💕</span>
+                <h2>Siap Menulis <span class="gradient-text">Ceritamu?</span></h2>
+                <p>Bergabunglah dengan ribuan pasangan yang memperdalam hubungan mereka setiap hari.<br />
+                <span style="font-size: 0.9rem; color: var(--text-muted);">Gratis selamanya. Tanpa batas.</span></p>
+                <a href="register.html" class="btn btn-primary">
+                    Mulai Sekarang ✨
+                </a>
             </div>
         </section>
 
         <!-- Footer -->
         <footer class="footer">
             <div class="container">
-                <p>Made with 💕 by OurStory Together &copy; 2026</p>
+                <p>
+                    Made with <span class="heart">💕</span> by OurStory Together &copy; 2026
+                    <span style="display: block; font-size: 0.75rem; margin-top: 0.25rem; color: var(--text-muted);">
+                        Build with ❤️ for couples everywhere
+                    </span>
+                </p>
             </div>
         </footer>
     </div>
 
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="js/utils.js"></script>
+    <script src="js/supabase.js"></script>
+    <script src="js/ui.js"></script>
+    <script src="js/theme.js"></script>
     <script src="js/app.js"></script>
+    
+    <script>
+        // ============================================
+        // INDEX PAGE SPECIFIC SCRIPTS
+        // ============================================
+
+        document.addEventListener('DOMContentLoaded', () => {
+            // Mobile menu toggle
+            const menuBtn = document.querySelector('.mobile-menu-btn');
+            const navLinks = document.querySelector('.nav-links');
+            
+            if (menuBtn && navLinks) {
+                menuBtn.addEventListener('click', () => {
+                    navLinks.classList.toggle('open');
+                });
+
+                // Close menu on link click
+                navLinks.querySelectorAll('a').forEach(link => {
+                    link.addEventListener('click', () => {
+                        navLinks.classList.remove('open');
+                    });
+                });
+            }
+
+            // Smooth scroll for anchor links
+            document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+                anchor.addEventListener('click', function(e) {
+                    const target = document.querySelector(this.getAttribute('href'));
+                    if (target) {
+                        e.preventDefault();
+                        target.scrollIntoView({
+                            behavior: 'smooth',
+                            block: 'start'
+                        });
+                    }
+                });
+            });
+
+            // Animate stats on scroll
+            const stats = document.querySelectorAll('.stat-item-home .number');
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        const el = entry.target;
+                        const text = el.textContent;
+                        if (text.includes('K+')) {
+                            const num = parseInt(text);
+                            animateNumber(el, num, 1000);
+                        } else if (text.includes('%')) {
+                            const num = parseInt(text);
+                            animateNumber(el, num, 1000, '%');
+                        } else {
+                            const num = parseInt(text);
+                            animateNumber(el, num, 1000);
+                        }
+                        observer.unobserve(el);
+                    }
+                });
+            }, { threshold: 0.5 });
+
+            stats.forEach(stat => observer.observe(stat));
+
+            function animateNumber(el, target, duration, suffix = '') {
+                let start = 0;
+                const step = target / (duration / 16);
+                const isFloat = target % 1 !== 0;
+                
+                const timer = setInterval(() => {
+                    start += step;
+                    if (start >= target) {
+                        start = target;
+                        clearInterval(timer);
+                    }
+                    if (isFloat) {
+                        el.textContent = start.toFixed(1) + suffix;
+                    } else {
+                        el.textContent = Math.floor(start) + suffix;
+                    }
+                }, 16);
+            }
+
+            // Check if user is logged in and redirect
+            getCurrentUser().then(user => {
+                if (user) {
+                    const protectedPages = ['dashboard.html', 'chat.html', 'finance.html', 
+                        'memories.html', 'calendar.html', 'settings.html', 'ai.html'];
+                    const currentPage = window.location.pathname.split('/').pop();
+                    if (!protectedPages.includes(currentPage) && currentPage !== 'index.html') {
+                        // User is logged in, but on landing page - show CTA to dashboard
+                        const ctaBtn = document.querySelector('.cta-card .btn');
+                        if (ctaBtn) {
+                            ctaBtn.textContent = 'Go to Dashboard 🚀';
+                            ctaBtn.href = 'dashboard.html';
+                        }
+                    }
+                }
+            });
+
+            // Create floating particles
+            function createParticles() {
+                const container = document.querySelector('.hero');
+                if (!container) return;
+
+                for (let i = 0; i < 15; i++) {
+                    const particle = document.createElement('div');
+                    particle.className = 'particle';
+                    particle.style.position = 'absolute';
+                    particle.style.width = Math.random() * 4 + 2 + 'px';
+                    particle.style.height = particle.style.width;
+                    particle.style.background = `rgba(255, 107, 157, ${Math.random() * 0.15 + 0.05})`;
+                    particle.style.borderRadius = '50%';
+                    particle.style.left = Math.random() * 100 + '%';
+                    particle.style.top = Math.random() * 100 + '%';
+                    particle.style.animation = `floatParticle ${Math.random() * 8 + 4}s linear infinite`;
+                    particle.style.animationDelay = Math.random() * 4 + 's';
+                    container.appendChild(particle);
+                }
+            }
+            createParticles();
+
+            console.log('✅ Index page loaded');
+        });
+    </script>
 </body>
 </html>

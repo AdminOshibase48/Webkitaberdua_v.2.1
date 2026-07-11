@@ -128,8 +128,8 @@
     }
   ],
   "env": {
-    "VITE_SUPABASE_URL": "@supabase_url",
-    "VITE_SUPABASE_ANON_KEY": "@supabase_anon_key"
+    "VITE_SUPABASE_URL": "https://kqdzhajnkrjhryilaqdu.supabase.co",
+    "VITE_SUPABASE_ANON_KEY": "sb_publishable_f7R-mvQIWT5wKgdBGYyi8w_6vfH2WbM"
   },
   "github": {
     "enabled": true,

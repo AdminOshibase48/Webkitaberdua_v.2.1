@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Memories - OurStory Together</title>
+    <link rel="manifest" href="manifest.json" />
+    <link rel="icon" href="favicon.ico" />
+    <link rel="stylesheet" href="css/globals.css" />
+    <link rel="stylesheet" href="css/theme.css" />
+    <link rel="stylesheet" href="css/glass.css" />
+    <link rel="stylesheet" href="css/components.css" />
+    <link rel="stylesheet" href="css/responsive.css" />
+    <link rel="stylesheet" href="css/animations.css" />
+</head>
+<body>
+    <div id="app">
+        <header class="page-header glass">
+            <button class="back-btn" onclick="window.location.href='/dashboard.html'">←</button>
+            <h1>📸 Our Memories</h1>
+            <button class="icon-btn" id="add-memory-btn">➕</button>
+        </header>
+
+        <!-- Memory Filters -->
+        <div class="memory-filters">
+            <button class="filter-btn active" data-filter="all">All</button>
+            <button class="filter-btn" data-filter="photo">📷 Photos</button>
+            <button class="filter-btn" data-filter="video">🎥 Videos</button>
+            <button class="filter-btn" data-filter="album">📁 Albums</button>
+        </div>
+
+        <!-- Memories Grid -->
+        <div class="memories-grid" id="memories-grid">
+            <p class="empty-state">No memories yet. Start capturing your moments! 📸</p>
+        </div>
+
+        <!-- Bottom Navigation -->
+        <nav class="bottom-nav glass">
+            <a href="dashboard.html" class="nav-item">
+                <span class="nav-icon">🏠</span>
+                <span class="nav-label">Home</span>
+            </a>
+            <a href="chat.html" class="nav-item">
+                <span class="nav-icon">💬</span>
+                <span class="nav-label">Chat</span>
+            </a>
+            <a href="memories.html" class="nav-item active">
+                <span class="nav-icon">📸</span>
+                <span class="nav-label">Memories</span>
+            </a>
+            <a href="finance.html" class="nav-item">
+                <span class="nav-icon">💰</span>
+                <span class="nav-label">Finance</span>
+            </a>
+            <a href="settings.html" class="nav-item">
+                <span class="nav-icon">⚙️</span>
+                <span class="nav-label">Settings</span>
+            </a>
+        </nav>
+    </div>
+
+    <!-- Memory Upload Modal -->
+    <div id="memory-modal" class="modal hidden">
+        <div class="modal-content glass">
+            <h2>Add New Memory</h2>
+            <form id="memory-form">
+                <div class="form-group">
+                    <label for="memory-title">Title</label>
+                    <input type="text" id="memory-title" placeholder="Our special moment" required />
+                </div>
+                <div class="form-group">
+                    <label for="memory-description">Description</label>
+                    <textarea id="memory-description" placeholder="Tell the story..."></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="memory-type">Type</label>
+                    <select id="memory-type" required>
+                        <option value="photo">Photo</option>
+                        <option value="video">Video</option>
+                        <option value="album">Album</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="memory-file">Upload File</label>
+                    <input type="file" id="memory-file" accept="image/*,video/*" />
+                </div>
+                <div class="form-group">
+                    <label for="memory-date">Date</label>
+                    <input type="date" id="memory-date" required />
+                </div>
+                <button type="submit" class="btn btn-primary btn-full">Save Memory ✨</button>
+                <button type="button" class="btn btn-secondary btn-full" id="close-memory-modal">Cancel</button>
+            </form>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/utils.js"></script>
+    <script src="js/supabase.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/memories.js"></script>
+    <script src="js/ui.js"></script>
+    <script src="js/theme.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>

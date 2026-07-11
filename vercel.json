@@ -3,7 +3,6 @@
   "buildCommand": "echo 'No build needed'",
   "outputDirectory": ".",
   "installCommand": "echo 'No install needed'",
-  "devCommand": "echo 'No dev command'",
   "framework": null,
   "routes": [
     {
@@ -11,7 +10,15 @@
       "dest": "/index.html"
     },
     {
+      "src": "/index",
+      "dest": "/index.html"
+    },
+    {
       "src": "/login",
+      "dest": "/login.html"
+    },
+    {
+      "src": "/login.html",
       "dest": "/login.html"
     },
     {
@@ -19,7 +26,15 @@
       "dest": "/register.html"
     },
     {
+      "src": "/register.html",
+      "dest": "/register.html"
+    },
+    {
       "src": "/dashboard",
+      "dest": "/dashboard.html"
+    },
+    {
+      "src": "/dashboard.html",
       "dest": "/dashboard.html"
     },
     {
@@ -27,7 +42,15 @@
       "dest": "/chat.html"
     },
     {
+      "src": "/chat.html",
+      "dest": "/chat.html"
+    },
+    {
       "src": "/memories",
+      "dest": "/memories.html"
+    },
+    {
+      "src": "/memories.html",
       "dest": "/memories.html"
     },
     {
@@ -35,7 +58,15 @@
       "dest": "/finance.html"
     },
     {
+      "src": "/finance.html",
+      "dest": "/finance.html"
+    },
+    {
       "src": "/calendar",
+      "dest": "/calendar.html"
+    },
+    {
+      "src": "/calendar.html",
       "dest": "/calendar.html"
     },
     {
@@ -43,7 +74,15 @@
       "dest": "/settings.html"
     },
     {
+      "src": "/settings.html",
+      "dest": "/settings.html"
+    },
+    {
       "src": "/ai",
+      "dest": "/ai.html"
+    },
+    {
+      "src": "/ai.html",
       "dest": "/ai.html"
     },
     {
@@ -73,6 +112,10 @@
     {
       "src": "/supabase/(.*)",
       "dest": "/supabase/$1"
+    },
+    {
+      "src": "/(.*)\\.html",
+      "dest": "/$1.html"
     },
     {
       "src": "/(.*)",

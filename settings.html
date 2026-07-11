@@ -58,15 +58,38 @@
                 </div>
             </section>
 
-            <!-- AI Settings -->
-            <section class="settings-section glass">
-                <h2>🤖 AI Assistant</h2>
-                <div class="settings-item">
-                    <span>OpenRouter API Key</span>
-                    <input type="password" id="api-key" placeholder="Enter your API key" />
-                </div>
-                <button class="btn btn-secondary" id="save-api-key">Save API Key</button>
-            </section>
+           <!-- AI Settings -->
+<section class="settings-section glass">
+    <h2>🤖 AI Assistant Settings</h2>
+    
+    <div class="settings-info" id="ai-settings-info">
+        <!-- Will be populated by JavaScript -->
+    </div>
+    
+    <div class="settings-item">
+        <span>AI Model</span>
+        <select id="ai-model-select" class="ai-model-select">
+            <!-- Options populated by JavaScript -->
+        </select>
+    </div>
+    
+    <div class="settings-item">
+        <span>API Status</span>
+        <div class="ai-status">
+            <span class="status-dot online"></span>
+            <span>Developer API Key Active</span>
+        </div>
+    </div>
+    
+    <button class="btn btn-secondary" id="test-ai-connection">Test Connection</button>
+    
+    <div style="margin-top: 1rem;">
+        <h4 style="margin-bottom: 0.5rem;">Quick Analysis</h4>
+        <button class="ai-analyze-btn" id="ai-analyze-btn">
+            🔍 Analyze My Relationship
+        </button>
+    </div>
+</section>
 
             <!-- Danger Zone -->
             <section class="settings-section glass danger">

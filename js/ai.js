@@ -1,17 +1,19 @@
-// AI Assistant functionality
-// DEVELOPER API KEY - Ganti dengan API Key Anda
-const DEVELOPER_API_KEY = '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';
-const DEFAULT_MODEL = 'google/gemma-4-26b-a4b-it:free';
+// ============================================
+// AI ASSISTANT MODULE
+// ============================================
 
-let apiKey = DEVELOPER_API_KEY; // Gunakan API Key developer
+// DEVELOPER API KEY - GANTI DENGAN API KEY ANDA
+const DEVELOPER_API_KEY = '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';
+const DEFAULT_MODEL = 'nvidia/nemotron-3-super-120b-a12b:free';
+
+let apiKey = DEVELOPER_API_KEY;
 let userModel = localStorage.getItem('ai_model') || DEFAULT_MODEL;
-let aiMessages = [];
 let isStreaming = false;
 
-// Get available models from OpenRouter
+// Available models
 const AVAILABLE_MODELS = {
-    'openai/gpt-oss-120b:free': 'OpenAI: gpt (Free)',
-    'nvidia/nemotron-3-super-120b-a12b:free': 'NVIDIA: Nemotron 3 Super (free)',
+    'google/gemini-2.0-flash-lite-preview-02-05:free': 'Gemini 2.0 Flash Lite (Free)',
+    'google/gemini-2.0-flash-exp:free': 'Gemini 2.0 Flash (Free)',
     'google/gemini-2.0-pro-exp-02-05:free': 'Gemini 2.0 Pro (Free)',
     'anthropic/claude-3.5-sonnet:beta': 'Claude 3.5 Sonnet',
     'anthropic/claude-3-haiku:beta': 'Claude 3 Haiku',
@@ -24,35 +26,10 @@ const AVAILABLE_MODELS = {
     'qwen/qwen-2.5-7b-instruct:free': 'Qwen 2.5 7B (Free)'
 };
 
-// Set API key (for developer override)
-function setDeveloperApiKey(key) {
-    apiKey = key || DEVELOPER_API_KEY;
-    localStorage.setItem('developer_api_key', key);
-}
+// ============================================
+// GET APP CONTEXT
+// ============================================
 
-// Get API key
-function getApiKey() {
-    return apiKey;
-}
-
-// Set user's preferred model
-function setUserModel(model) {
-    userModel = model;
-    localStorage.setItem('ai_model', model);
-    showToast(`Model AI diubah ke: ${AVAILABLE_MODELS[model] || model}`, 'success');
-}
-
-// Get user's model
-function getUserModel() {
-    return userModel;
-}
-
-// Get available models list
-function getAvailableModels() {
-    return AVAILABLE_MODELS;
-}
-
-// Get application context for AI analysis
 async function getAppContext() {
     try {
         const user = await getCurrentUser();
@@ -88,7 +65,6 @@ async function getAppContext() {
             .order('date', { ascending: true })
             .limit(5);
 
-        // Calculate relationship days
         let daysTogether = 0;
         if (relationship) {
             const startDate = new Date(relationship.start_date);
@@ -96,7 +72,6 @@ async function getAppContext() {
             daysTogether = Math.ceil((now - startDate) / (1000 * 60 * 60 * 24));
         }
 
-        // Get user stats
         const { data: stats } = await supabaseClient
             .from('user_stats')
             .select('*')
@@ -129,121 +104,112 @@ async function getAppContext() {
     }
 }
 
-// Get system prompt with context
-async function getSystemPromptWithContext() {
+// ============================================
+// GET SYSTEM PROMPT
+// ============================================
+
+async function getSystemPrompt() {
     const context = await getAppContext();
     const now = new Date();
-    const dateStr = now.toLocaleDateString('en-US', { 
+    const dateStr = now.toLocaleDateString('id-ID', { 
         weekday: 'long', 
         year: 'numeric', 
         month: 'long', 
         day: 'numeric' 
     });
 
-    let contextStr = `Current Date: ${dateStr}\n\n`;
+    let contextStr = `Tanggal: ${dateStr}\n\n`;
 
     if (context) {
-        contextStr += `USER INFORMATION:\n`;
-        contextStr += `- Name: ${context.user.name}\n`;
+        contextStr += `INFORMASI USER:\n`;
+        contextStr += `- Nama: ${context.user.name}\n`;
         contextStr += `- Email: ${context.user.email}\n`;
 
         if (context.partner) {
-            contextStr += `\nPARTNER INFORMATION:\n`;
-            contextStr += `- Name: ${context.partner.name}\n`;
+            contextStr += `\nINFORMASI PASANGAN:\n`;
+            contextStr += `- Nama: ${context.partner.name}\n`;
             contextStr += `- Status: ${context.partner.status}\n`;
         }
 
-        contextStr += `\nRELATIONSHIP STATUS:\n`;
-        contextStr += `- Days Together: ${context.relationship.daysTogether} days\n`;
-        contextStr += `- Relationship Status: ${context.relationship.status}\n`;
-        contextStr += `- Love Level: ${context.relationship.loveLevel}\n`;
-        contextStr += `- Current Streak: ${context.relationship.streak} days\n`;
+        contextStr += `\nSTATUS HUBUNGAN:\n`;
+        contextStr += `- Hari Bersama: ${context.relationship.daysTogether} hari\n`;
+        contextStr += `- Status: ${context.relationship.status}\n`;
+        contextStr += `- Level Cinta: ${context.relationship.loveLevel}\n`;
+        contextStr += `- Streak: ${context.relationship.streak} hari\n`;
         contextStr += `- XP: ${context.stats.xp} | Level: ${context.stats.level}\n`;
 
         if (context.recentTransactions && context.recentTransactions.length > 0) {
-            contextStr += `\nRECENT TRANSACTIONS:\n`;
+            contextStr += `\nTRANSAKSI TERBARU:\n`;
             context.recentTransactions.forEach(t => {
                 contextStr += `- ${t.type}: Rp ${t.amount} (${t.category || 'General'})\n`;
             });
         }
 
         if (context.recentMemories && context.recentMemories.length > 0) {
-            contextStr += `\nRECENT MEMORIES:\n`;
+            contextStr += `\nKENANGAN TERBARU:\n`;
             context.recentMemories.forEach(m => {
                 contextStr += `- ${m.title} (${m.date || 'No date'})\n`;
             });
         }
 
         if (context.upcomingEvents && context.upcomingEvents.length > 0) {
-            contextStr += `\nUPCOMING EVENTS:\n`;
+            contextStr += `\nEVENT MENDATANG:\n`;
             context.upcomingEvents.forEach(e => {
-                contextStr += `- ${e.title} on ${e.date} (${e.type})\n`;
+                contextStr += `- ${e.title} pada ${e.date} (${e.type})\n`;
             });
         }
     }
 
-    // Add app information
-    contextStr += `\nAPP INFORMATION:\n`;
-    contextStr += `- App Name: OurStory Together\n`;
-    contextStr += `- Version: 1.0.0\n`;
-    contextStr += `- AI Model: ${userModel}\n`;
+    return `Kamu adalah "LoveGuide", asisten AI yang penuh kasih untuk aplikasi couple "OurStory Together".
 
-    return `You are "LoveGuide", a loving and wise relationship assistant for the "OurStory Together" couple app. 
+Kamu memiliki akses ke data hubungan user. Gunakan informasi ini untuk memberikan saran yang personal.
 
-You have access to the user's relationship data and app context. Use this information to provide personalized advice and insights.
+KEMAMPUAN UTAMA:
+- Saran hubungan berdasarkan situasi spesifik pasangan
+- Ide kencan personal
+- Saran keuangan berdasarkan transaksi terbaru
+- Motivasi berdasarkan milestone hubungan
+- Analisis bahasa cinta
+- Perencanaan anniversary
+- Rekomendasi hadiah
 
-KEY CAPABILITIES:
-- Relationship advice based on the couple's specific situation
-- Personalized date ideas considering their preferences
-- Financial advice tailored to their recent transactions
-- Motivation based on their relationship milestones
-- Love language analysis
-- Anniversary planning with their important dates
-- Gift recommendations based on their interests
+ATURAN PENTING:
+1. Bersikap hangat, suportif, dan penuh cinta
+2. Gunakan emoji sesekali
+3. Respons singkat (2-3 paragraf)
+4. Selalu positif dan memberi semangat
+5. Referensikan data hubungan mereka
+6. Berikan saran yang bisa diimplementasikan
 
-IMPORTANT RULES:
-1. Be warm, supportive, and loving in your tone
-2. Use emojis occasionally to feel friendly
-3. Keep responses concise (2-3 paragraphs max)
-4. Always be positive and encouraging
-5. Reference their specific relationship data when relevant
-6. Give actionable advice they can implement
-7. If you don't know something, be honest about it
-
-USER CONTEXT:
+KONTEKS USER:
 ${contextStr}
 
-Based on this context, provide helpful, personalized responses. Remember, you're their AI relationship companion! 💕`;
+Berdasarkan konteks ini, berikan respons yang personal dan membantu. Ingat, kamu adalah pendamping AI mereka! 💕`;
 }
 
-// Send message to AI with context
+// ============================================
+// SEND AI MESSAGE
+// ============================================
+
 async function sendAIMessage(message, context = []) {
     if (!apiKey) {
-        showToast('AI API Key tidak ditemukan. Hubungi developer.', 'error');
+        showToast('API Key tidak ditemukan. Hubungi developer.', 'error');
         return null;
     }
 
     try {
         isStreaming = true;
+        updateAIStatus('Generating...', 'loading');
 
-        // Get system prompt with context
-        const systemPrompt = await getSystemPromptWithContext();
+        const systemPrompt = await getSystemPrompt();
 
-        // Prepare messages
         const messages = [
-            {
-                role: 'system',
-                content: systemPrompt
-            },
+            { role: 'system', content: systemPrompt },
             ...context,
-            {
-                role: 'user',
-                content: message
-            }
+            { role: 'user', content: message }
         ];
 
-        console.log(`📤 Sending request to AI model: ${userModel}`);
-        console.log(`📋 Context size: ${systemPrompt.length} characters`);
+        console.log(`📤 Sending to AI model: ${userModel}`);
 
         const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
             method: 'POST',
@@ -267,7 +233,6 @@ async function sendAIMessage(message, context = []) {
             throw new Error(`API error: ${response.status} - ${errorData.error?.message || 'Unknown error'}`);
         }
 
-        // Read stream
         const reader = response.body.getReader();
         const decoder = new TextDecoder();
         let fullResponse = '';
@@ -289,54 +254,51 @@ async function sendAIMessage(message, context = []) {
                         const content = parsed.choices[0]?.delta?.content || '';
                         if (content) {
                             fullResponse += content;
-                            // Update UI with streaming response
                             updateAIResponse(fullResponse);
                         }
-                    } catch (e) {
-                        // Skip invalid JSON
-                    }
+                    } catch (e) {}
                 }
             }
         }
 
         isStreaming = false;
+        updateAIStatus('Siap', 'online');
 
-        // Save to history
         await saveAIHistory(message, fullResponse);
-
-        console.log(`✅ AI response received (${fullResponse.length} characters)`);
+        console.log(`✅ AI response received (${fullResponse.length} chars)`);
         return fullResponse;
+
     } catch (error) {
         console.error('AI error:', error);
         isStreaming = false;
+        updateAIStatus('Error', 'offline');
         showToast(`AI request failed: ${error.message}`, 'error');
         return null;
     }
 }
 
-// Save AI history
+// ============================================
+// SAVE AI HISTORY
+// ============================================
+
 async function saveAIHistory(prompt, response) {
     try {
         const user = await getCurrentUser();
         if (!user) return;
 
-        const { error } = await supabaseClient
+        await supabaseClient
             .from('ai_history')
             .insert({
                 user_id: user.id,
                 prompt: prompt,
                 response: response,
-                model: userModel,
-                created_at: new Date().toISOString()
+                model: userModel
             });
-
-        if (error) throw error;
     } catch (error) {
         console.error('Save AI history error:', error);
     }
 }
 
-// Get AI history
 async function getAIHistory(limit = 20) {
     try {
         const user = await getCurrentUser();
@@ -357,298 +319,125 @@ async function getAIHistory(limit = 20) {
     }
 }
 
-// Update AI response in UI
-function updateAIResponse(text) {
-    const responseContainer = document.getElementById('ai-response');
-    if (responseContainer) {
-        responseContainer.textContent = text;
-        // Scroll to bottom
-        responseContainer.scrollTop = responseContainer.scrollHeight;
-    }
-}
+// ============================================
+// QUICK PROMPTS
+// ============================================
 
-// AI prompt templates
 const AI_TEMPLATES = {
-    'relationship_advice': "Berikan saya saran hubungan yang penuh kasih untuk hari ini: ",
-    'date_ideas': "Sarankan 5 ide kencan yang kreatif dan romantis: ",
-    'financial_advice': "Berikan saya saran keuangan untuk pasangan: ",
-    'motivation': "Berikan saya motivasi cinta harian dan dorongan semangat: ",
-    'love_language': "Bantu saya memahami bahasa cinta pasangan saya lebih baik: ",
-    'anniversary': "Bantu saya merencanakan perayaan anniversary yang spesial: ",
-    'gift': "Sarankan ide hadiah yang bermakna untuk pasangan saya: ",
-    'analyze': "Analisis hubungan saya dan berikan saran untuk meningkatkannya: "
+    'relationship_advice': 'Berikan saya saran hubungan yang penuh kasih untuk hari ini. Gunakan data hubungan saya untuk saran yang personal.',
+    'date_ideas': 'Sarankan 5 ide kencan yang kreatif dan romantis berdasarkan preferensi saya.',
+    'motivation': 'Berikan saya motivasi cinta harian dan dorongan semangat.',
+    'love_language': 'Bantu saya memahami bahasa cinta pasangan saya lebih baik. Analisis berdasarkan interaksi kami.',
+    'anniversary': 'Bantu saya merencanakan perayaan anniversary yang spesial dan bermakna.',
+    'gift': 'Sarankan ide hadiah yang bermakna untuk pasangan saya.',
+    'analyze': 'Analisis hubungan saya secara lengkap dan berikan saran untuk meningkatkannya. Gunakan semua data yang tersedia.',
+    'financial_advice': 'Berikan saya saran keuangan untuk pasangan berdasarkan transaksi kami.'
 };
 
-// Quick AI prompts
 async function quickAIPrompt(type, context = '') {
     const template = AI_TEMPLATES[type] || AI_TEMPLATES.relationship_advice;
     const message = context ? `${template} ${context}` : template;
     return await sendAIMessage(message);
 }
 
-// Analyze relationship with context
-async function analyzeRelationship() {
-    const context = await getAppContext();
-    if (!context) {
-        showToast('Gagal mendapatkan konteks hubungan', 'error');
-        return null;
+// ============================================
+// UI FUNCTIONS
+// ============================================
+
+function updateAIResponse(text) {
+    const container = document.getElementById('ai-response');
+    if (container) {
+        container.textContent = text;
+        container.scrollTop = container.scrollHeight;
     }
-
-    const prompt = `Analisis hubungan saya berdasarkan data berikut:
-- Hari bersama: ${context.relationship.daysTogether} hari
-- Status: ${context.relationship.status}
-- Level cinta: ${context.relationship.loveLevel}
-- Streak: ${context.relationship.streak} hari
-- XP: ${context.stats.xp} | Level: ${context.stats.level}
-
-${context.partner ? `Pasangan: ${context.partner.name} (${context.partner.status})` : 'Belum memiliki pasangan'}
-
-${context.recentMemories.length > 0 ? `Memori terbaru: ${context.recentMemories.map(m => m.title).join(', ')}` : ''}
-${context.upcomingEvents.length > 0 ? `Event mendatang: ${context.upcomingEvents.map(e => e.title).join(', ')}` : ''}
-
-Berikan analisis lengkap tentang hubungan saya dan saran untuk meningkatkannya.`;
-
-    return await sendAIMessage(prompt);
 }
 
-// Initialize AI features
-document.addEventListener('DOMContentLoaded', () => {
-    const sendBtn = document.getElementById('ai-send-btn');
-    const input = document.getElementById('ai-input');
-    const responseContainer = document.getElementById('ai-response');
-    const modelSelect = document.getElementById('ai-model-select');
-    const statusIndicator = document.getElementById('ai-status');
-
-    // Populate model selector
-    if (modelSelect) {
-        // Clear existing options
-        modelSelect.innerHTML = '';
-        
-        // Add options
-        Object.entries(AVAILABLE_MODELS).forEach(([value, label]) => {
-            const option = document.createElement('option');
-            option.value = value;
-            option.textContent = label;
-            if (value === userModel) {
-                option.selected = true;
-            }
-            modelSelect.appendChild(option);
-        });
-
-        // Handle model change
-        modelSelect.addEventListener('change', (e) => {
-            const newModel = e.target.value;
-            setUserModel(newModel);
-            // Update status
-            if (statusIndicator) {
-                statusIndicator.textContent = `Model: ${AVAILABLE_MODELS[newModel] || newModel}`;
-            }
-        });
-
-        // Update status
-        if (statusIndicator) {
-            statusIndicator.textContent = `Model: ${AVAILABLE_MODELS[userModel] || userModel}`;
-        }
+function updateAIStatus(text, status) {
+    const statusText = document.getElementById('ai-status-text');
+    const statusDot = document.getElementById('ai-status-dot');
+    
+    if (statusText) statusText.textContent = text;
+    if (statusDot) {
+        statusDot.className = `status-dot ${status}`;
     }
+}
 
-    // Add analyze button
-    const analyzeBtn = document.getElementById('ai-analyze-btn');
-    if (analyzeBtn) {
-        analyzeBtn.addEventListener('click', async () => {
-            if (!apiKey) {
-                showToast('API Key tidak ditemukan. Hubungi developer.', 'error');
-                return;
-            }
+function getAvailableModels() {
+    return AVAILABLE_MODELS;
+}
 
-            if (responseContainer) {
-                responseContainer.textContent = '🔍 Menganalisis hubungan Anda...';
-            }
+function getUserModel() {
+    return userModel;
+}
 
-            const response = await analyzeRelationship();
-            if (response) {
-                // Show response
-                if (responseContainer) {
-                    responseContainer.textContent = response;
-                }
-            }
-        });
-    }
+function setUserModel(model) {
+    userModel = model;
+    localStorage.setItem('ai_model', model);
+    showToast(`Model AI diubah ke: ${AVAILABLE_MODELS[model] || model}`, 'success');
+}
 
-    if (sendBtn && input) {
-        sendBtn.addEventListener('click', async () => {
-            const message = input.value.trim();
-            if (!message) return;
+function getApiKey() {
+    return apiKey;
+}
 
-            if (!apiKey) {
-                showToast('API Key tidak ditemukan. Hubungi developer.', 'error');
-                return;
-            }
-
-            // Show loading
-            if (responseContainer) {
-                responseContainer.textContent = '💭 Sedang berpikir...';
-            }
-
-            const response = await sendAIMessage(message);
-            if (response) {
-                input.value = '';
-                // Save to recent prompts
-                const history = JSON.parse(localStorage.getItem('ai_recent_prompts') || '[]');
-                history.unshift({ prompt: message, response: response, time: Date.now() });
-                if (history.length > 10) history.pop();
-                localStorage.setItem('ai_recent_prompts', JSON.stringify(history));
-            }
-        });
-
-        input.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault();
-                sendBtn.click();
-            }
-        });
-    }
-
-    // Quick prompt buttons
-    document.querySelectorAll('.ai-quick-btn').forEach(btn => {
-        btn.addEventListener('click', async () => {
-            const type = btn.dataset.type;
-            if (!apiKey) {
-                showToast('API Key tidak ditemukan. Hubungi developer.', 'error');
-                return;
-            }
-
-            if (responseContainer) {
-                responseContainer.textContent = '💭 Sedang berpikir...';
-            }
-
-            const response = await quickAIPrompt(type);
-            if (response) {
-                if (responseContainer) {
-                    responseContainer.textContent = response;
-                }
-            }
-        });
-    });
-
-    // Update UI with current settings info
-    const settingsInfo = document.getElementById('ai-settings-info');
-    if (settingsInfo) {
-        settingsInfo.innerHTML = `
-            <div class="settings-info">
-                <p>🔑 API Key: ${apiKey ? '✅ Terkonfigurasi (Developer)' : '❌ Tidak ditemukan'}</p>
-                <p>🤖 Model: ${AVAILABLE_MODELS[userModel] || userModel}</p>
-                <p>📊 Status: ${isStreaming ? '⏳ Memproses...' : '✅ Siap digunakan'}</p>
-            </div>
-        `;
-    }
-});
-
-// Export functions
-window.setDeveloperApiKey = setDeveloperApiKey;
-window.getApiKey = getApiKey;
-window.setUserModel = setUserModel;
-window.getUserModel = getUserModel;
-window.getAvailableModels = getAvailableModels;
-window.sendAIMessage = sendAIMessage;
-window.quickAIPrompt = quickAIPrompt;
-window.getAIHistory = getAIHistory;
-window.analyzeRelationship = analyzeRelationship;
-window.getAppContext = getAppContext;
-
-console.log('🤖 AI Module Loaded with Developer API Key');
-console.log(`📋 Available Models: ${Object.keys(AVAILABLE_MODELS).length}`);
-console.log(`🔑 API Key: ${apiKey ? '✅ Set' : '❌ Missing'}`);
-console.log(`🤖 Current Model: ${userModel}`);
 // ============================================
-// AI PAGE SPECIFIC FUNCTIONS
+// INIT AI
 // ============================================
 
-// Initialize AI page
-async function initAIPage() {
+document.addEventListener('DOMContentLoaded', async () => {
+    // Check if on AI page
+    if (!window.location.pathname.includes('ai.html')) return;
+
     const user = await getCurrentUser();
     if (!user) {
-        window.location.href = '/login.html';
+        window.location.href = 'login.html';
         return;
     }
 
     // Update model display
     const modelDisplay = document.getElementById('ai-model-display');
     if (modelDisplay) {
-        const currentModel = getUserModel();
-        const models = getAvailableModels();
-        modelDisplay.textContent = models[currentModel] || currentModel;
+        modelDisplay.textContent = AVAILABLE_MODELS[userModel] || userModel;
     }
 
-    // Update context status
-    const contextStatus = document.getElementById('ai-context-status');
-    if (contextStatus) {
-        const apiKey = getApiKey();
-        if (apiKey) {
-            contextStatus.textContent = '✅ Dengan konteks aplikasi';
-            contextStatus.style.color = '#34c759';
-        } else {
-            contextStatus.textContent = '⚠️ Tanpa konteks (API Key missing)';
-            contextStatus.style.color = '#ff9500';
-        }
-    }
+    // Update status
+    updateAIStatus('Siap', 'online');
 
-    // Setup AI chat
-    setupAIChat();
-
-    // Setup quick action buttons
-    setupQuickActions();
-
-    console.log('🤖 AI Page initialized');
-}
-
-// Setup AI chat functionality
-function setupAIChat() {
+    // Setup chat
     const input = document.getElementById('ai-input');
     const sendBtn = document.getElementById('ai-send-btn');
-    const messagesContainer = document.getElementById('ai-messages');
     const loading = document.getElementById('ai-loading');
 
     if (!input || !sendBtn) return;
 
-    // Send message function
     async function sendMessage() {
         const message = input.value.trim();
         if (!message) return;
 
-        // Check API key
-        const apiKey = getApiKey();
         if (!apiKey) {
             showToast('⚠️ API Key tidak ditemukan. Hubungi developer.', 'error');
             return;
         }
 
-        // Add user message to UI
+        // Add user message
         addAIMessage('user', message);
         input.value = '';
 
-        // Show loading
         if (loading) loading.classList.remove('hidden');
         updateAIStatus('Generating...', 'loading');
 
-        // Send to AI
         const response = await sendAIMessage(message);
 
-        // Hide loading
         if (loading) loading.classList.add('hidden');
         updateAIStatus('Siap', 'online');
 
         if (response) {
-            // Add AI response to UI
             addAIMessage('assistant', response);
-            
-            // Save to history
-            saveAIHistory(message, response);
         } else {
             addAIMessage('assistant', 'Maaf, saya mengalami masalah. Silakan coba lagi nanti. 😅');
         }
     }
 
-    // Event listeners
     sendBtn.addEventListener('click', sendMessage);
     input.addEventListener('keypress', (e) => {
         if (e.key === 'Enter' && !e.shiftKey) {
@@ -657,11 +446,39 @@ function setupAIChat() {
         }
     });
 
-    // Auto focus input
-    input.focus();
-}
+    // Quick action buttons
+    document.querySelectorAll('.ai-quick-btn').forEach(btn => {
+        btn.addEventListener('click', async () => {
+            const type = btn.dataset.type;
+            if (!apiKey) {
+                showToast('⚠️ API Key tidak ditemukan. Hubungi developer.', 'error');
+                return;
+            }
 
-// Add message to AI chat
+            const message = AI_TEMPLATES[type] || 'Halo!';
+            addAIMessage('user', message);
+
+            if (loading) loading.classList.remove('hidden');
+            updateAIStatus('Generating...', 'loading');
+
+            const response = await quickAIPrompt(type);
+
+            if (loading) loading.classList.add('hidden');
+            updateAIStatus('Siap', 'online');
+
+            if (response) {
+                addAIMessage('assistant', response);
+            } else {
+                addAIMessage('assistant', 'Maaf, saya mengalami masalah. Silakan coba lagi nanti. 😅');
+            }
+        });
+    });
+});
+
+// ============================================
+// ADD AI MESSAGE
+// ============================================
+
 function addAIMessage(role, content) {
     const container = document.getElementById('ai-messages');
     if (!container) return;
@@ -677,11 +494,7 @@ function addAIMessage(role, content) {
 
         const bubble = document.createElement('div');
         bubble.className = 'ai-bubble';
-        
-        // Format content with markdown-like styling
-        const formattedContent = formatAIContent(content);
-        bubble.innerHTML = formattedContent;
-        
+        bubble.innerHTML = content.replace(/\n/g, '<br>');
         messageDiv.appendChild(bubble);
     } else {
         const bubble = document.createElement('div');
@@ -691,157 +504,21 @@ function addAIMessage(role, content) {
     }
 
     container.appendChild(messageDiv);
-    
-    // Scroll to bottom
     container.scrollTop = container.scrollHeight;
 }
 
-// Format AI content (adds basic markdown)
-function formatAIContent(content) {
-    // Convert newlines to <br>
-    let formatted = content.replace(/\n/g, '<br>');
-    
-    // Convert **bold** to <strong>
-    formatted = formatted.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
-    
-    // Convert *italic* to <em>
-    formatted = formatted.replace(/\*(.*?)\*/g, '<em>$1</em>');
-    
-    // Convert bullet points
-    formatted = formatted.replace(/• (.*?)(<br>|$)/g, '• $1$2');
-    
-    return formatted;
-}
+// ============================================
+// EXPORTS
+// ============================================
 
-// Setup quick action buttons
-function setupQuickActions() {
-    const buttons = document.querySelectorAll('.ai-quick-btn');
-    const loading = document.getElementById('ai-loading');
-
-    buttons.forEach(btn => {
-        btn.addEventListener('click', async () => {
-            const type = btn.dataset.type;
-            const apiKey = getApiKey();
-            
-            if (!apiKey) {
-                showToast('⚠️ API Key tidak ditemukan. Hubungi developer.', 'error');
-                return;
-            }
-
-            // Get template message
-            const templates = {
-                'relationship_advice': 'Berikan saya saran hubungan yang penuh kasih untuk hari ini. Tolong gunakan data hubungan saya untuk memberikan saran yang personal.',
-                'date_ideas': 'Sarankan 5 ide kencan yang kreatif dan romantis berdasarkan preferensi saya.',
-                'motivation': 'Berikan saya motivasi cinta harian dan dorongan semangat.',
-                'love_language': 'Bantu saya memahami bahasa cinta pasangan saya lebih baik. Analisis berdasarkan interaksi kami.',
-                'anniversary': 'Bantu saya merencanakan perayaan anniversary yang spesial dan bermakna.',
-                'gift': 'Sarankan ide hadiah yang bermakna untuk pasangan saya.',
-                'analyze': 'Analisis hubungan saya secara lengkap dan berikan saran untuk meningkatkannya. Gunakan semua data yang tersedia.',
-                'financial_advice': 'Berikan saya saran keuangan untuk pasangan berdasarkan transaksi kami.'
-            };
-
-            const message = templates[type] || 'Halo!';
-            
-            // Add user message
-            addAIMessage('user', message);
-
-            // Show loading
-            if (loading) loading.classList.remove('hidden');
-            updateAIStatus('Generating...', 'loading');
-
-            // Send to AI
-            const response = await quickAIPrompt(type);
-
-            // Hide loading
-            if (loading) loading.classList.add('hidden');
-            updateAIStatus('Siap', 'online');
-
-            if (response) {
-                addAIMessage('assistant', response);
-                saveAIHistory(message, response);
-            } else {
-                addAIMessage('assistant', 'Maaf, saya mengalami masalah. Silakan coba lagi nanti. 😅');
-            }
-        });
-    });
-}
-
-// Update AI status
-function updateAIStatus(text, status) {
-    const statusText = document.getElementById('ai-status-text');
-    const statusDot = document.getElementById('ai-status-dot');
-    
-    if (statusText) statusText.textContent = text;
-    if (statusDot) {
-        statusDot.className = `status-dot ${status}`;
-    }
-}
-
-// Load AI history
-async function loadAIHistory() {
-    try {
-        const history = await getAIHistory(20);
-        const container = document.getElementById('ai-messages');
-        if (!container) return;
-
-        // Clear welcome message if history exists
-        if (history.length > 0) {
-            // Keep only the last 10 messages
-            const recent = history.slice(0, 10);
-            recent.reverse().forEach(item => {
-                // Add user message
-                addAIMessage('user', item.prompt);
-                // Add AI response
-                addAIMessage('assistant', item.response);
-            });
-            
-            // Add a separator
-            const separator = document.createElement('div');
-            separator.className = 'ai-history-separator';
-            separator.innerHTML = '<hr><span style="font-size: 0.8rem; color: var(--text-secondary);">Riwayat sebelumnya</span><hr>';
-            container.prepend(separator);
-        }
-    } catch (error) {
-        console.error('Error loading AI history:', error);
-    }
-}
-
-// Clear AI history
-async function clearAIHistory() {
-    try {
-        const user = await getCurrentUser();
-        if (!user) return;
-
-        if (!confirm('Hapus semua riwayat chat AI?')) return;
-
-        const { error } = await supabaseClient
-            .from('ai_history')
-            .delete()
-            .eq('user_id', user.id);
-
-        if (error) throw error;
-        
-        // Reload page to clear messages
-        showToast('Riwayat AI berhasil dihapus', 'success');
-        window.location.reload();
-    } catch (error) {
-        console.error('Error clearing AI history:', error);
-        showToast('Gagal menghapus riwayat', 'error');
-    }
-}
-
-// Override init for AI page
-document.addEventListener('DOMContentLoaded', async () => {
-    // Check if we're on AI page
-    if (window.location.pathname.includes('ai.html')) {
-        await initAIPage();
-        await loadAIHistory();
-    }
-});
-
-// Export new functions
-window.initAIPage = initAIPage;
+window.sendAIMessage = sendAIMessage;
+window.quickAIPrompt = quickAIPrompt;
+window.getAIHistory = getAIHistory;
+window.getAvailableModels = getAvailableModels;
+window.getUserModel = getUserModel;
+window.setUserModel = setUserModel;
+window.getApiKey = getApiKey;
 window.addAIMessage = addAIMessage;
-window.loadAIHistory = loadAIHistory;
-window.clearAIHistory = clearAIHistory;
 window.updateAIStatus = updateAIStatus;
+
+console.log('✅ AI module loaded');

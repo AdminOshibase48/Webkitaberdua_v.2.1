@@ -1,5 +1,5 @@
 // ============================================
-// SUPABASE CONFIGURATION - FIXED RLS ERROR
+// SUPABASE CONFIGURATION - FIXED VERSION
 // ============================================
 
 // ============================================
@@ -10,6 +10,7 @@ const SUPABASE_URL = 'https://kqdzhajnkrjhryilaqdu.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_f7R-mvQIWT5wKgdBGYyi8w_6vfH2WbM';
 
 console.log('🔗 Supabase URL:', SUPABASE_URL ? '✅ Set' : '❌ Missing');
+console.log('🔑 Supabase Anon Key:', SUPABASE_ANON_KEY ? '✅ Set' : '❌ Missing');
 
 // ============================================
 // STEP 2: INITIALIZE CLIENT
@@ -35,7 +36,21 @@ let relationshipData = null;
 async function getCurrentUser() {
     try {
         const { data: { user }, error } = await supabaseClient.auth.getUser();
-        if (error) throw error;
+        if (error) {
+            // Jika session missing, coba refresh
+            if (error.message.includes('Auth session missing')) {
+                console.log('🔄 Session missing, trying to refresh...');
+                const { data: sessionData, error: sessionError } = await supabaseClient.auth.getSession();
+                if (sessionError) throw sessionError;
+                if (sessionData?.session) {
+                    const { data: { user: refreshedUser }, error: refreshError } = await supabaseClient.auth.getUser();
+                    if (refreshError) throw refreshError;
+                    currentUser = refreshedUser;
+                    return refreshedUser;
+                }
+            }
+            throw error;
+        }
         currentUser = user;
         return user;
     } catch (error) {
@@ -56,8 +71,34 @@ async function getUserProfile(userId = null) {
             .single();
 
         if (error) {
-            // Jika profile belum ada, return null
             if (error.code === 'PGRST116') {
+                // Profile belum ada, coba create
+                console.log('📝 Profile not found, creating...');
+                const user = await getCurrentUser();
+                if (user) {
+                    const { data: newProfile, error: createError } = await supabaseClient
+                        .from('profiles')
+                        .insert({
+                            id: user.id,
+                            full_name: user.user_metadata?.full_name || user.email,
+                            email: user.email,
+                            status: 'online',
+                            created_at: new Date().toISOString()
+                        })
+                        .select()
+                        .single();
+
+                    if (createError) {
+                        console.error('❌ Failed to create profile:', createError);
+                        // Jika RLS error, beri tahu user
+                        if (createError.code === '42501') {
+                            throw new Error('RLS_ERROR: Please run RLS fix SQL in Supabase dashboard');
+                        }
+                        return null;
+                    }
+                    currentUserProfile = newProfile;
+                    return newProfile;
+                }
                 return null;
             }
             throw error;
@@ -160,7 +201,7 @@ function subscribeToPresence(userId, callback) {
 }
 
 // ============================================
-// STEP 5: AUTH OPERATIONS - FIXED RLS ERROR
+// STEP 5: AUTH OPERATIONS - FIXED
 // ============================================
 
 async function signUp(email, password, fullName, partnerEmail = null) {
@@ -169,7 +210,7 @@ async function signUp(email, password, fullName, partnerEmail = null) {
         
         const siteUrl = window.location.origin;
         
-        // STEP 1: Create user di Supabase Auth
+        // STEP 1: Create user
         const { data: { user }, error: signUpError } = await supabaseClient.auth.signUp({
             email,
             password,
@@ -186,69 +227,77 @@ async function signUp(email, password, fullName, partnerEmail = null) {
 
         console.log('✅ User created:', user.id);
 
-        // STEP 2: Create profile dengan RLS yang sudah diperbaiki
-        const { error: profileError } = await supabaseClient
-            .from('profiles')
-            .insert({
-                id: user.id,
-                full_name: fullName,
-                email: email,
-                status: 'online',
-                created_at: new Date().toISOString()
-            });
+        // STEP 2: Create profile - COBA LANGSUNG
+        try {
+            const { error: profileError } = await supabaseClient
+                .from('profiles')
+                .insert({
+                    id: user.id,
+                    full_name: fullName,
+                    email: email,
+                    status: 'online',
+                    created_at: new Date().toISOString()
+                });
 
-        if (profileError) {
-            console.error('❌ Profile creation error:', profileError);
-            
-            // Jika RLS error, coba dengan service role key (hanya untuk development)
-            // Atau beri tahu user untuk setup RLS
-            if (profileError.code === '42501') {
-                throw new Error('RLS policy error. Please run the RLS fix SQL in Supabase dashboard.');
+            if (profileError) {
+                console.error('❌ Profile creation error:', profileError);
+                
+                // Jika RLS error, beri pesan jelas
+                if (profileError.code === '42501') {
+                    throw new Error('⚠️ RLS Policy Error: Silakan jalankan SQL fix RLS di Supabase Dashboard terlebih dahulu!');
+                }
+                throw profileError;
             }
-            throw profileError;
+        } catch (profileError) {
+            // Jika profile gagal, kita tetap lanjut tapi dengan warning
+            console.warn('⚠️ Profile creation failed, but user created:', profileError);
+            // Beri tahu user bahwa profile perlu dibuat manual
+            return { 
+                success: true, 
+                user: user,
+                warning: 'Profile creation failed. Please check Supabase RLS policies.',
+                error: profileError.message
+            };
         }
 
         console.log('✅ Profile created');
 
         // STEP 3: Create user stats
-        const { error: statsError } = await supabaseClient
-            .from('user_stats')
-            .insert({
-                user_id: user.id,
-                xp: 0,
-                level: 1,
-                achievements: []
-            });
-
-        if (statsError) {
-            console.error('❌ Stats creation error:', statsError);
-            // Non-critical error, continue
+        try {
+            await supabaseClient
+                .from('user_stats')
+                .insert({
+                    user_id: user.id,
+                    xp: 0,
+                    level: 1,
+                    achievements: []
+                });
+        } catch (statsError) {
+            console.warn('⚠️ Stats creation failed:', statsError);
         }
 
         // STEP 4: Create relationship
-        const { error: relationshipError } = await supabaseClient
-            .from('relationships')
-            .insert({
-                user1_id: user.id,
-                user2_id: null,
-                start_date: new Date().toISOString(),
-                status: 'pending',
-                love_level: 1,
-                streak_days: 0
-            });
-
-        if (relationshipError) {
-            console.error('❌ Relationship creation error:', relationshipError);
-            // Non-critical error, continue
+        try {
+            await supabaseClient
+                .from('relationships')
+                .insert({
+                    user1_id: user.id,
+                    user2_id: null,
+                    start_date: new Date().toISOString(),
+                    status: 'pending',
+                    love_level: 1,
+                    streak_days: 0
+                });
+        } catch (relError) {
+            console.warn('⚠️ Relationship creation failed:', relError);
         }
 
-        // STEP 5: Link partner if email provided
+        // STEP 5: Link partner
         if (partnerEmail) {
             try {
                 await linkPartner(user.id, partnerEmail);
             } catch (linkError) {
                 console.warn('⚠️ Partner linking failed:', linkError);
-                // Non-critical, user can link later
             }
         }
 
@@ -258,15 +307,13 @@ async function signUp(email, password, fullName, partnerEmail = null) {
     } catch (error) {
         console.error('❌ Sign up error:', error);
         
-        // Cleanup: jika user sudah dibuat tapi profile gagal, hapus user
-        if (error.message.includes('RLS policy')) {
-            return { 
-                success: false, 
-                error: 'Error: Silakan jalankan SQL fix RLS di Supabase dashboard terlebih dahulu.\n\n' + error.message 
-            };
+        // Pesan error yang jelas
+        let errorMessage = error.message;
+        if (error.message.includes('RLS')) {
+            errorMessage = '⚠️ Silakan jalankan SQL fix RLS di Supabase Dashboard terlebih dahulu!\n\n' + error.message;
         }
         
-        return { success: false, error: error.message };
+        return { success: false, error: errorMessage };
     }
 }
 
@@ -285,25 +332,7 @@ async function signIn(email, password) {
         currentUser = user;
         
         // Coba dapatkan profile
-        try {
-            await getUserProfile(user.id);
-        } catch (profileError) {
-            console.warn('⚠️ Profile not found, creating...');
-            // Create profile if not exists
-            const { error: createError } = await supabaseClient
-                .from('profiles')
-                .insert({
-                    id: user.id,
-                    full_name: user.user_metadata?.full_name || user.email,
-                    email: user.email,
-                    status: 'online',
-                    created_at: new Date().toISOString()
-                });
-            
-            if (createError) {
-                console.error('❌ Failed to create profile on login:', createError);
-            }
-        }
+        await getUserProfile(user.id);
         
         await updatePresence('online');
 
@@ -500,7 +529,28 @@ supabaseClient.auth.onAuthStateChange((event, session) => {
 });
 
 // ============================================
-// STEP 7: EXPOSE FUNCTIONS KE WINDOW
+// STEP 7: GET SESSION ON LOAD
+// ============================================
+
+// Cek session saat load
+(async function initSession() {
+    try {
+        const { data: { session }, error } = await supabaseClient.auth.getSession();
+        if (error) throw error;
+        if (session?.user) {
+            currentUser = session.user;
+            console.log('✅ Session found:', currentUser.email);
+            await getUserProfile(currentUser.id);
+        } else {
+            console.log('👤 No active session');
+        }
+    } catch (error) {
+        console.error('Session check error:', error);
+    }
+})();
+
+// ============================================
+// STEP 8: EXPOSE FUNCTIONS
 // ============================================
 
 window.supabaseClient = supabaseClient;

@@ -2,15 +2,34 @@
   "name": "ourstory-together",
   "version": "1.0.0",
   "description": "Premium couple app for modern relationships",
+  "main": "index.html",
   "scripts": {
-    "build": "echo 'No build needed'",
-    "start": "serve ."
+    "build": "echo 'No build needed for static site'",
+    "start": "serve .",
+    "vercel-build": "echo 'Building static site...'"
   },
   "dependencies": {
     "serve": "^14.2.0"
   },
   "devDependencies": {},
   "engines": {
-    "node": ">=18"
-  }
+    "node": ">=18.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/yourusername/ourstory-together.git"
+  },
+  "keywords": [
+    "couple",
+    "relationship",
+    "love",
+    "dating",
+    "app"
+  ],
+  "author": "Your Name",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/yourusername/ourstory-together/issues"
+  },
+  "homepage": "https://github.com/yourusername/ourstory-together#readme"
 }

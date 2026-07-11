@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="id">
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Settings - OurStory Together</title>
+    <title>Pengaturan - OurStory Together</title>
     <link rel="manifest" href="manifest.json" />
     <link rel="icon" href="favicon.ico" />
     <link rel="stylesheet" href="css/globals.css" />
@@ -16,166 +16,56 @@
 <body>
     <div id="app">
         <header class="page-header glass">
-            <button class="back-btn" onclick="window.location.href='/dashboard.html'">←</button>
-            <h1>⚙️ Settings</h1>
+            <button class="back-btn" onclick="window.location.href='dashboard.html'">←</button>
+            <h1>⚙️ Pengaturan</h1>
             <div></div>
         </header>
 
         <div class="settings-container">
             <!-- Profile Section -->
             <section class="settings-section glass">
-                <h2>👤 Profile</h2>
+                <h2>👤 Profil</h2>
                 <div class="settings-item">
-                    <span>Display Name</span>
-                    <input type="text" id="display-name" placeholder="Your name" />
+                    <span>Nama Tampilan</span>
+                    <input type="text" id="display-name" placeholder="Nama Anda" />
                 </div>
                 <div class="settings-item">
                     <span>Email</span>
                     <span id="user-email">Loading...</span>
                 </div>
-                <button class="btn btn-secondary" id="update-profile">Update Profile</button>
+                <button class="btn btn-secondary" id="update-profile" style="margin-top: 0.5rem;">Update Profil</button>
             </section>
 
-        
-<section class="settings-section glass">
-    <h2>💑 Relationship</h2>
-    <div id="relationship-info">
-        <p class="loading">Loading relationship data...</p>
-    </div>
-</section>
+            <!-- Relationship Info -->
+            <section class="settings-section glass">
+                <h2>💑 Hubungan</h2>
+                <div id="relationship-info">
+                    <p class="loading">Loading...</p>
+                </div>
+            </section>
 
-<!-- Add unlink partner button -->
-<section class="settings-section glass">
-    <h2>💑 Partner</h2>
-    <div class="settings-item">
-        <span>Partner's Email</span>
-        <input type="email" id="partner-email-settings" placeholder="partner@example.com" />
-    </div>
-    <div style="display: flex; gap: 0.5rem; margin-top: 0.5rem; flex-wrap: wrap;">
-        <button class="btn btn-secondary" id="link-partner">Link Partner</button>
-        <button class="btn btn-danger" id="unlink-partner" style="background: #ff3b30;">Unlink Partner</button>
-    </div>
-    <div id="partner-info" style="margin-top: 0.5rem;">
-        <p>Partner: <span id="partner-name-display">-</span></p>
-        <p>Status: <span id="partner-status-display">-</span></p>
-    </div>
-</section>
-
-<!-- AI Settings - Enhanced -->
-<section class="settings-section glass">
-    <h2>🤖 AI Assistant</h2>
-    
-    <div id="ai-settings-info">
-        <!-- Populated by JavaScript -->
-    </div>
-    
-    <div class="settings-item">
-        <span>AI Model</span>
-        <select id="ai-model-select" class="ai-model-select">
-            <!-- Options populated by JavaScript -->
-        </select>
-    </div>
-    
-    <div style="display: flex; gap: 0.5rem; margin-top: 0.5rem; flex-wrap: wrap;">
-        <button class="btn btn-secondary" id="test-ai-connection">Test Connection</button>
-        <button class="btn btn-primary" id="ai-analyze-btn">🔍 Analyze Relationship</button>
-    </div>
-    
-    <div style="margin-top: 1rem;">
-        <div id="ai-response" class="ai-response-container">
-            <p style="color: var(--text-secondary);">Klik "Analyze Relationship" untuk analisis lengkap hubungan Anda</p>
-        </div>
-    </div>
-</section>
-
-<!-- Data Management -->
-<section class="settings-section glass">
-    <h2>📁 Data Management</h2>
-    <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
-        <button class="btn btn-secondary" id="export-data">📤 Export Data</button>
-        <label class="btn btn-secondary" style="cursor: pointer;">
-            📥 Import Data
-            <input type="file" id="import-data" accept=".json" style="display: none;" />
-        </label>
-    </div>
-    <p style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 0.5rem;">
-        Export semua data Anda sebagai file JSON atau import data dari backup sebelumnya.
-    </p>
-</section>
-
-<!-- Update Danger Zone -->
-<section class="settings-section glass danger">
-    <h2>⚠️ Danger Zone</h2>
-    <p style="font-size: 0.9rem; color: var(--text-secondary); margin-bottom: 1rem;">
-        Tindakan ini tidak dapat dibatalkan. Semua data Anda akan dihapus permanen.
-    </p>
-    <button class="btn btn-danger" id="delete-account">Delete Account</button>
-</section>
-
-<!-- Update Sign Out button -->
-<button class="btn btn-primary btn-full" id="sign-out" style="margin-top: 1rem;">
-    Sign Out 👋
-</button>
-
-<!-- Add CSS for relationship stats -->
-<style>
-.relationship-stats {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-    gap: 0.75rem;
-}
-
-.stat-item {
-    padding: 0.75rem;
-    background: var(--glass-bg);
-    border-radius: var(--radius);
-    text-align: center;
-}
-
-.stat-item .stat-label {
-    display: block;
-    font-size: 0.7rem;
-    color: var(--text-secondary);
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    margin-bottom: 0.25rem;
-}
-
-.stat-item .stat-value {
-    font-size: 1.1rem;
-    font-weight: 600;
-}
-
-.status-active {
-    color: #34c759;
-}
-
-.status-pending {
-    color: #ff9500;
-}
-
-.status-inactive {
-    color: #ff3b30;
-}
-
-.status-online {
-    color: #34c759;
-}
-
-.status-offline {
-    color: #8e8e93;
-}
-
-.status-away {
-    color: #ff9500;
-}
-</style>
+            <!-- Partner Section -->
+            <section class="settings-section glass">
+                <h2>💑 Pasangan</h2>
+                <div class="settings-item">
+                    <span>Email Pasangan</span>
+                    <input type="email" id="partner-email-settings" placeholder="pasangan@example.com" />
+                </div>
+                <div style="display: flex; gap: 0.5rem; margin-top: 0.5rem; flex-wrap: wrap;">
+                    <button class="btn btn-secondary" id="link-partner">Hubungkan Pasangan</button>
+                    <button class="btn btn-danger" id="unlink-partner" style="background: #ff3b30;">Putuskan</button>
+                </div>
+                <div style="margin-top: 0.5rem; font-size: 0.9rem; color: var(--text-secondary);">
+                    <p>Pasangan: <span id="partner-name-display">-</span></p>
+                    <p>Status: <span id="partner-status-display">-</span></p>
+                </div>
+            </section>
 
             <!-- Theme Section -->
             <section class="settings-section glass">
-                <h2>🎨 Theme</h2>
+                <h2>🎨 Tema</h2>
                 <div class="settings-item">
-                    <span>Dark Mode</span>
+                    <span>Mode Gelap</span>
                     <label class="toggle">
                         <input type="checkbox" id="dark-mode-toggle" />
                         <span class="toggle-slider"></span>
@@ -183,47 +73,61 @@
                 </div>
             </section>
 
-           <!-- AI Settings -->
-<section class="settings-section glass">
-    <h2>🤖 AI Assistant Settings</h2>
-    
-    <div class="settings-info" id="ai-settings-info">
-        <!-- Will be populated by JavaScript -->
-    </div>
-    
-    <div class="settings-item">
-        <span>AI Model</span>
-        <select id="ai-model-select" class="ai-model-select">
-            <!-- Options populated by JavaScript -->
-        </select>
-    </div>
-    
-    <div class="settings-item">
-        <span>API Status</span>
-        <div class="ai-status">
-            <span class="status-dot online"></span>
-            <span>Developer API Key Active</span>
-        </div>
-    </div>
-    
-    <button class="btn btn-secondary" id="test-ai-connection">Test Connection</button>
-    
-    <div style="margin-top: 1rem;">
-        <h4 style="margin-bottom: 0.5rem;">Quick Analysis</h4>
-        <button class="ai-analyze-btn" id="ai-analyze-btn">
-            🔍 Analyze My Relationship
-        </button>
-    </div>
-</section>
+            <!-- AI Settings -->
+            <section class="settings-section glass">
+                <h2>🤖 AI Assistant</h2>
+                
+                <div id="ai-settings-info">
+                    <!-- Populated by JavaScript -->
+                </div>
+                
+                <div class="settings-item">
+                    <span>Model AI</span>
+                    <select id="ai-model-select" class="ai-model-select">
+                        <!-- Options populated by JavaScript -->
+                    </select>
+                </div>
+                
+                <div style="display: flex; gap: 0.5rem; margin-top: 0.5rem; flex-wrap: wrap;">
+                    <button class="btn btn-secondary" id="test-ai-connection">Test Connection</button>
+                    <button class="btn btn-primary" id="ai-analyze-btn">🔍 Analisis Hubungan</button>
+                </div>
+                
+                <div style="margin-top: 0.75rem;">
+                    <div id="ai-response" class="ai-response-container" style="min-height: 80px; max-height: 150px; padding: 0.75rem; background: var(--card-bg); border-radius: var(--radius-sm); border: 1px solid var(--card-border); overflow-y: auto; font-size: 0.9rem; line-height: 1.5;">
+                        <p style="color: var(--text-secondary);">Klik "Analisis Hubungan" untuk analisis lengkap</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Data Management -->
+            <section class="settings-section glass">
+                <h2>📁 Manajemen Data</h2>
+                <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                    <button class="btn btn-secondary" id="export-data">📤 Export Data</button>
+                    <label class="btn btn-secondary" style="cursor: pointer;">
+                        📥 Import Data
+                        <input type="file" id="import-data" accept=".json" style="display: none;" />
+                    </label>
+                </div>
+                <p style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 0.5rem;">
+                    Export semua data Anda sebagai file JSON atau import dari backup sebelumnya.
+                </p>
+            </section>
 
             <!-- Danger Zone -->
             <section class="settings-section glass danger">
-                <h2>⚠️ Danger Zone</h2>
-                <button class="btn btn-danger" id="delete-account">Delete Account</button>
+                <h2>⚠️ Zona Bahaya</h2>
+                <p style="font-size: 0.9rem; color: var(--text-secondary); margin-bottom: 0.75rem;">
+                    Tindakan ini tidak dapat dibatalkan. Semua data Anda akan dihapus permanen.
+                </p>
+                <button class="btn btn-danger" id="delete-account">Hapus Akun</button>
             </section>
 
             <!-- Sign Out -->
-            <button class="btn btn-primary btn-full" id="sign-out">Sign Out</button>
+            <button class="btn btn-primary btn-full" id="sign-out" style="margin-top: 0.5rem;">
+                Keluar 👋
+            </button>
         </div>
 
         <!-- Bottom Navigation -->
@@ -240,9 +144,9 @@
                 <span class="nav-icon">📸</span>
                 <span class="nav-label">Memories</span>
             </a>
-            <a href="finance.html" class="nav-item">
-                <span class="nav-icon">💰</span>
-                <span class="nav-label">Finance</span>
+            <a href="ai.html" class="nav-item">
+                <span class="nav-icon">🤖</span>
+                <span class="nav-label">AI</span>
             </a>
             <a href="settings.html" class="nav-item active">
                 <span class="nav-icon">⚙️</span>
@@ -257,7 +161,8 @@
     <script src="js/auth.js"></script>
     <script src="js/ui.js"></script>
     <script src="js/theme.js"></script>
+    <script src="js/ai.js"></script>
+    <script src="js/settings.js"></script>
     <script src="js/app.js"></script>
-     <script src="js/settings.js"></script>
 </body>
 </html>

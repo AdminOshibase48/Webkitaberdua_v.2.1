@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Settings - OurStory Together</title>
+    <link rel="manifest" href="manifest.json" />
+    <link rel="icon" href="favicon.ico" />
+    <link rel="stylesheet" href="css/globals.css" />
+    <link rel="stylesheet" href="css/theme.css" />
+    <link rel="stylesheet" href="css/glass.css" />
+    <link rel="stylesheet" href="css/components.css" />
+    <link rel="stylesheet" href="css/responsive.css" />
+    <link rel="stylesheet" href="css/animations.css" />
+</head>
+<body>
+    <div id="app">
+        <header class="page-header glass">
+            <button class="back-btn" onclick="window.location.href='/dashboard.html'">←</button>
+            <h1>⚙️ Settings</h1>
+            <div></div>
+        </header>
+
+        <div class="settings-container">
+            <!-- Profile Section -->
+            <section class="settings-section glass">
+                <h2>👤 Profile</h2>
+                <div class="settings-item">
+                    <span>Display Name</span>
+                    <input type="text" id="display-name" placeholder="Your name" />
+                </div>
+                <div class="settings-item">
+                    <span>Email</span>
+                    <span id="user-email">Loading...</span>
+                </div>
+                <button class="btn btn-secondary" id="update-profile">Update Profile</button>
+            </section>
+
+            <!-- Partner Section -->
+            <section class="settings-section glass">
+                <h2>💑 Partner</h2>
+                <div class="settings-item">
+                    <span>Partner's Email</span>
+                    <input type="email" id="partner-email-settings" placeholder="partner@example.com" />
+                </div>
+                <button class="btn btn-secondary" id="link-partner">Link Partner</button>
+            </section>
+
+            <!-- Theme Section -->
+            <section class="settings-section glass">
+                <h2>🎨 Theme</h2>
+                <div class="settings-item">
+                    <span>Dark Mode</span>
+                    <label class="toggle">
+                        <input type="checkbox" id="dark-mode-toggle" />
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+            </section>
+
+            <!-- AI Settings -->
+            <section class="settings-section glass">
+                <h2>🤖 AI Assistant</h2>
+                <div class="settings-item">
+                    <span>OpenRouter API Key</span>
+                    <input type="password" id="api-key" placeholder="Enter your API key" />
+                </div>
+                <button class="btn btn-secondary" id="save-api-key">Save API Key</button>
+            </section>
+
+            <!-- Danger Zone -->
+            <section class="settings-section glass danger">
+                <h2>⚠️ Danger Zone</h2>
+                <button class="btn btn-danger" id="delete-account">Delete Account</button>
+            </section>
+
+            <!-- Sign Out -->
+            <button class="btn btn-primary btn-full" id="sign-out">Sign Out</button>
+        </div>
+
+        <!-- Bottom Navigation -->
+        <nav class="bottom-nav glass">
+            <a href="dashboard.html" class="nav-item">
+                <span class="nav-icon">🏠</span>
+                <span class="nav-label">Home</span>
+            </a>
+            <a href="chat.html" class="nav-item">
+                <span class="nav-icon">💬</span>
+                <span class="nav-label">Chat</span>
+            </a>
+            <a href="memories.html" class="nav-item">
+                <span class="nav-icon">📸</span>
+                <span class="nav-label">Memories</span>
+            </a>
+            <a href="finance.html" class="nav-item">
+                <span class="nav-icon">💰</span>
+                <span class="nav-label">Finance</span>
+            </a>
+            <a href="settings.html" class="nav-item active">
+                <span class="nav-icon">⚙️</span>
+                <span class="nav-label">Settings</span>
+            </a>
+        </nav>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/utils.js"></script>
+    <script src="js/supabase.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/ui.js"></script>
+    <script src="js/theme.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>

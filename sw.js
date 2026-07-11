@@ -1,4 +1,4 @@
-// Service Worker for PWA
+// sw.js - Service Worker untuk PWA
 
 const CACHE_NAME = 'ourstory-v1';
 const STATIC_ASSETS = [
@@ -12,6 +12,7 @@ const STATIC_ASSETS = [
   '/memories.html',
   '/calendar.html',
   '/settings.html',
+  '/ai.html',
   '/404.html',
   '/css/globals.css',
   '/css/theme.css',
@@ -31,6 +32,7 @@ const STATIC_ASSETS = [
   '/js/ui.js',
   '/js/theme.js',
   '/js/utils.js',
+  '/js/settings.js',
   '/manifest.json',
   '/favicon.ico'
 ];
@@ -40,11 +42,10 @@ self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME)
       .then((cache) => {
+        console.log('✅ Caching assets');
         return cache.addAll(STATIC_ASSETS);
       })
-      .then(() => {
-        return self.skipWaiting();
-      })
+      .then(() => self.skipWaiting())
   );
 });
 
@@ -55,13 +56,12 @@ self.addEventListener('activate', (event) => {
       return Promise.all(
         cacheNames.map((cacheName) => {
           if (cacheName !== CACHE_NAME) {
+            console.log('🗑️ Removing old cache:', cacheName);
             return caches.delete(cacheName);
           }
         })
       );
-    }).then(() => {
-      return self.clients.claim();
-    })
+    }).then(() => self.clients.claim())
   );
 });
 
@@ -76,7 +76,6 @@ self.addEventListener('fetch', (event) => {
 
         return fetch(event.request)
           .then((response) => {
-            // Cache successful responses
             if (response && response.status === 200 && response.type === 'basic') {
               const responseClone = response.clone();
               caches.open(CACHE_NAME).then((cache) => {
@@ -86,18 +85,17 @@ self.addEventListener('fetch', (event) => {
             return response;
           })
           .catch(() => {
-            // Return offline page
             return caches.match('/404.html');
           });
       })
   );
 });
 
-// Push event
+// Push notification event
 self.addEventListener('push', (event) => {
   const data = event.data.json();
   const options = {
-    body: data.body,
+    body: data.body || 'Ada notifikasi baru',
     icon: '/favicon.ico',
     badge: '/favicon.ico',
     vibrate: [200, 100, 200],
@@ -107,7 +105,7 @@ self.addEventListener('push', (event) => {
   };
 
   event.waitUntil(
-    self.registration.showNotification(data.title, options)
+    self.registration.showNotification(data.title || 'OurStory', options)
   );
 });
 
@@ -131,3 +129,5 @@ self.addEventListener('notificationclick', (event) => {
       })
   );
 });
+
+console.log('✅ Service Worker loaded');

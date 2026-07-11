@@ -1,4 +1,6 @@
-// Main application entry point
+// ============================================
+// MAIN APPLICATION - app.js
+// ============================================
 
 // Initialize app
 async function initApp() {
@@ -8,18 +10,18 @@ async function initApp() {
     const user = await getCurrentUser();
 
     // If on auth pages and already logged in, redirect to dashboard
-    const authPages = ['/login.html', '/register.html'];
-    const currentPath = window.location.pathname;
+    const authPages = ['login.html', 'register.html'];
+    const currentPath = window.location.pathname.split('/').pop();
 
     if (user && authPages.includes(currentPath)) {
-        window.location.href = '/dashboard.html';
+        window.location.href = 'dashboard.html';
         return;
     }
 
     // If on protected pages and not logged in, redirect to login
-    const protectedPages = ['/dashboard.html', '/chat.html', '/finance.html', '/memories.html', '/calendar.html', '/settings.html'];
+    const protectedPages = ['dashboard.html', 'chat.html', 'finance.html', 'memories.html', 'calendar.html', 'settings.html', 'ai.html'];
     if (!user && protectedPages.includes(currentPath)) {
-        window.location.href = '/login.html';
+        window.location.href = 'login.html';
         return;
     }
 
@@ -65,14 +67,48 @@ async function initApp() {
     // Register service worker
     if ('serviceWorker' in navigator && !navigator.serviceWorker.controller) {
         try {
-            const registration = await navigator.serviceWorker.register('/sw.js');
+            const registration = await navigator.serviceWorker.register('sw.js');
             console.log('Service Worker registered:', registration);
         } catch (error) {
             console.error('Service Worker registration failed:', error);
         }
     }
 
+    // Setup quick action handlers
+    setupQuickActions();
+
     console.log('💕 OurStory Together - Ready!');
+}
+
+// Setup quick action buttons
+function setupQuickActions() {
+    document.querySelectorAll('.action-btn[data-action]').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const action = btn.dataset.action;
+            const routes = {
+                'chat': 'chat.html',
+                'memory': 'memories.html',
+                'finance': 'finance.html',
+                'calendar': 'calendar.html',
+                'ai': 'ai.html',
+                'settings': 'settings.html'
+            };
+            if (routes[action]) {
+                window.location.href = routes[action];
+            }
+        });
+    });
+
+    // Setup bottom navigation active state
+    const currentPage = window.location.pathname.split('/').pop();
+    document.querySelectorAll('.bottom-nav .nav-item').forEach(item => {
+        const href = item.getAttribute('href');
+        if (href === currentPage) {
+            item.classList.add('active');
+        } else {
+            item.classList.remove('active');
+        }
+    });
 }
 
 // Update UI with user data
@@ -151,7 +187,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (window.history.length > 1) {
                 window.history.back();
             } else {
-                window.location.href = '/dashboard.html';
+                window.location.href = 'dashboard.html';
             }
         });
     });
@@ -173,3 +209,4 @@ window.addEventListener('unhandledrejection', (e) => {
 
 // Export app
 window.initApp = initApp;
+window.setupQuickActions = setupQuickActions;

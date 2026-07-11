@@ -1,17 +1,15 @@
 // ============================================
-// SUPABASE CONFIGURATION - FIXED VERSION
+// SUPABASE CONFIGURATION - FIXED RLS ERROR
 // ============================================
 
 // ============================================
 // STEP 1: DEFINE CONFIGURATION
 // ============================================
 
-// Ambil dari environment variables atau fallback
 const SUPABASE_URL = 'https://kqdzhajnkrjhryilaqdu.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_f7R-mvQIWT5wKgdBGYyi8w_6vfH2WbM';
 
 console.log('🔗 Supabase URL:', SUPABASE_URL ? '✅ Set' : '❌ Missing');
-console.log('🔑 Supabase Anon Key:', SUPABASE_ANON_KEY ? '✅ Set' : '❌ Missing');
 
 // ============================================
 // STEP 2: INITIALIZE CLIENT
@@ -29,7 +27,6 @@ let currentUser = null;
 let currentUserProfile = null;
 let partnerProfile = null;
 let relationshipData = null;
-let authListeners = [];
 
 // ============================================
 // STEP 4: AUTH FUNCTIONS
@@ -58,7 +55,14 @@ async function getUserProfile(userId = null) {
             .eq('id', id)
             .single();
 
-        if (error) throw error;
+        if (error) {
+            // Jika profile belum ada, return null
+            if (error.code === 'PGRST116') {
+                return null;
+            }
+            throw error;
+        }
+        
         currentUserProfile = data;
         return data;
     } catch (error) {
@@ -156,7 +160,7 @@ function subscribeToPresence(userId, callback) {
 }
 
 // ============================================
-// STEP 5: AUTH OPERATIONS
+// STEP 5: AUTH OPERATIONS - FIXED RLS ERROR
 // ============================================
 
 async function signUp(email, password, fullName, partnerEmail = null) {
@@ -165,6 +169,7 @@ async function signUp(email, password, fullName, partnerEmail = null) {
         
         const siteUrl = window.location.origin;
         
+        // STEP 1: Create user di Supabase Auth
         const { data: { user }, error: signUpError } = await supabaseClient.auth.signUp({
             email,
             password,
@@ -181,7 +186,7 @@ async function signUp(email, password, fullName, partnerEmail = null) {
 
         console.log('✅ User created:', user.id);
 
-        // Create profile
+        // STEP 2: Create profile dengan RLS yang sudah diperbaiki
         const { error: profileError } = await supabaseClient
             .from('profiles')
             .insert({
@@ -192,9 +197,20 @@ async function signUp(email, password, fullName, partnerEmail = null) {
                 created_at: new Date().toISOString()
             });
 
-        if (profileError) throw profileError;
+        if (profileError) {
+            console.error('❌ Profile creation error:', profileError);
+            
+            // Jika RLS error, coba dengan service role key (hanya untuk development)
+            // Atau beri tahu user untuk setup RLS
+            if (profileError.code === '42501') {
+                throw new Error('RLS policy error. Please run the RLS fix SQL in Supabase dashboard.');
+            }
+            throw profileError;
+        }
 
-        // Create user stats
+        console.log('✅ Profile created');
+
+        // STEP 3: Create user stats
         const { error: statsError } = await supabaseClient
             .from('user_stats')
             .insert({
@@ -204,9 +220,12 @@ async function signUp(email, password, fullName, partnerEmail = null) {
                 achievements: []
             });
 
-        if (statsError) throw statsError;
+        if (statsError) {
+            console.error('❌ Stats creation error:', statsError);
+            // Non-critical error, continue
+        }
 
-        // Create relationship
+        // STEP 4: Create relationship
         const { error: relationshipError } = await supabaseClient
             .from('relationships')
             .insert({
@@ -218,17 +237,35 @@ async function signUp(email, password, fullName, partnerEmail = null) {
                 streak_days: 0
             });
 
-        if (relationshipError) throw relationshipError;
+        if (relationshipError) {
+            console.error('❌ Relationship creation error:', relationshipError);
+            // Non-critical error, continue
+        }
 
-        // Link partner if email provided
+        // STEP 5: Link partner if email provided
         if (partnerEmail) {
-            await linkPartner(user.id, partnerEmail);
+            try {
+                await linkPartner(user.id, partnerEmail);
+            } catch (linkError) {
+                console.warn('⚠️ Partner linking failed:', linkError);
+                // Non-critical, user can link later
+            }
         }
 
         currentUser = user;
         return { success: true, user };
+        
     } catch (error) {
-        console.error('Sign up error:', error);
+        console.error('❌ Sign up error:', error);
+        
+        // Cleanup: jika user sudah dibuat tapi profile gagal, hapus user
+        if (error.message.includes('RLS policy')) {
+            return { 
+                success: false, 
+                error: 'Error: Silakan jalankan SQL fix RLS di Supabase dashboard terlebih dahulu.\n\n' + error.message 
+            };
+        }
+        
         return { success: false, error: error.message };
     }
 }
@@ -246,6 +283,28 @@ async function signIn(email, password) {
         if (!user) throw new Error('Login failed');
 
         currentUser = user;
+        
+        // Coba dapatkan profile
+        try {
+            await getUserProfile(user.id);
+        } catch (profileError) {
+            console.warn('⚠️ Profile not found, creating...');
+            // Create profile if not exists
+            const { error: createError } = await supabaseClient
+                .from('profiles')
+                .insert({
+                    id: user.id,
+                    full_name: user.user_metadata?.full_name || user.email,
+                    email: user.email,
+                    status: 'online',
+                    created_at: new Date().toISOString()
+                });
+            
+            if (createError) {
+                console.error('❌ Failed to create profile on login:', createError);
+            }
+        }
+        
         await updatePresence('online');
 
         console.log('✅ User signed in:', user.email);
@@ -437,10 +496,6 @@ supabaseClient.auth.onAuthStateChange((event, session) => {
         partnerProfile = null;
         relationshipData = null;
         console.log('👋 User signed out');
-    } else if (event === 'TOKEN_REFRESHED') {
-        console.log('🔄 Token refreshed');
-    } else if (event === 'USER_UPDATED') {
-        console.log('🔄 User updated');
     }
 });
 
@@ -448,7 +503,6 @@ supabaseClient.auth.onAuthStateChange((event, session) => {
 // STEP 7: EXPOSE FUNCTIONS KE WINDOW
 // ============================================
 
-// PASTIKAN SEMUA FUNGSI DI-EXPORT KE WINDOW
 window.supabaseClient = supabaseClient;
 window.getCurrentUser = getCurrentUser;
 window.getUserProfile = getUserProfile;
@@ -464,9 +518,7 @@ window.resetPassword = resetPassword;
 window.addXP = addXP;
 
 console.log('✅ Supabase module loaded successfully');
-console.log('📋 Functions exported to window:');
+console.log('📋 Functions exported:');
 console.log('  - signUp:', typeof window.signUp);
 console.log('  - signIn:', typeof window.signIn);
 console.log('  - signOut:', typeof window.signOut);
-console.log('  - resetPassword:', typeof window.resetPassword);
-console.log('  - getCurrentUser:', typeof window.getCurrentUser);

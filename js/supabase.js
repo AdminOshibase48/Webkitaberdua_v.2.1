@@ -1,123 +1,124 @@
-// Supabase Configuration
+// ============================================
+// SUPABASE CONFIGURATION
+// ============================================
+
+// Konfigurasi Supabase - GANTI DENGAN MILIK ANDA
 const SUPABASE_URL = 'https://kqdzhajnkrjhryilaqdu.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_f7R-mvQIWT5wKgdBGYyi8w_6vfH2WbM';
 
-// Initialize Supabase client
-const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+// Inisialisasi Supabase - PASTIKAN HANYA SEKALI
+if (typeof window.supabaseClient === 'undefined') {
+    window.supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+}
 
-// Store for current user
-let currentUser = null;
-let currentUserProfile = null;
-let partnerProfile = null;
-let relationshipData = null;
+// Variabel global
+window.currentUser = null;
+window.currentUserProfile = null;
+window.partnerProfile = null;
+window.relationshipData = null;
+
+// ============================================
+// FUNGSI UTAMA
+// ============================================
 
 // Get current user
-async function getCurrentUser() {
+window.getCurrentUser = async function() {
     try {
-        const { data: { user }, error } = await supabase.auth.getUser();
+        const { data: { user }, error } = await window.supabaseClient.auth.getUser();
         if (error) throw error;
-        currentUser = user;
+        window.currentUser = user;
         return user;
     } catch (error) {
         console.error('Error getting user:', error);
         return null;
     }
-}
+};
 
 // Get user profile
-async function getUserProfile(userId = null) {
+window.getUserProfile = async function(userId = null) {
     try {
-        const id = userId || currentUser?.id;
+        const id = userId || window.currentUser?.id;
         if (!id) return null;
 
-        const { data, error } = await supabase
+        const { data, error } = await window.supabaseClient
             .from('profiles')
             .select('*')
             .eq('id', id)
             .single();
 
         if (error) throw error;
+        window.currentUserProfile = data;
         return data;
     } catch (error) {
         console.error('Error getting profile:', error);
         return null;
     }
-}
+};
 
 // Get partner profile
-async function getPartnerProfile() {
+window.getPartnerProfile = async function() {
     try {
-        if (!currentUserProfile) return null;
-        const partnerId = currentUserProfile.partner_id;
+        if (!window.currentUserProfile) return null;
+        const partnerId = window.currentUserProfile.partner_id;
         if (!partnerId) return null;
 
-        const { data, error } = await supabase
+        const { data, error } = await window.supabaseClient
             .from('profiles')
             .select('*')
             .eq('id', partnerId)
             .single();
 
         if (error) throw error;
-        partnerProfile = data;
+        window.partnerProfile = data;
         return data;
     } catch (error) {
         console.error('Error getting partner profile:', error);
         return null;
     }
-}
+};
 
-// Check if user is authenticated
-async function checkAuth() {
-    const user = await getCurrentUser();
-    if (!user) {
-        window.location.href = '/login.html';
-        return false;
-    }
-    return true;
-}
-
-// Get relationship data
-async function getRelationship() {
+// Get relationship
+window.getRelationship = async function() {
     try {
-        if (!currentUser) return null;
+        if (!window.currentUser) return null;
 
-        const { data, error } = await supabase
+        const { data, error } = await window.supabaseClient
             .from('relationships')
             .select('*')
-            .or(`user1_id.eq.${currentUser.id},user2_id.eq.${currentUser.id}`)
+            .or(`user1_id.eq.${window.currentUser.id},user2_id.eq.${window.currentUser.id}`)
             .single();
 
         if (error && error.code !== 'PGRST116') throw error;
-        relationshipData = data;
+        window.relationshipData = data;
         return data;
     } catch (error) {
         console.error('Error getting relationship:', error);
         return null;
     }
-}
+};
 
-// Update user presence
-async function updatePresence(status = 'online') {
+// Update presence
+window.updatePresence = async function(status = 'online') {
     try {
-        if (!currentUser) return;
+        if (!window.currentUser) return;
 
-        const { error } = await supabase
+        const { error } = await window.supabaseClient
             .from('profiles')
             .update({
                 status: status,
                 last_seen: new Date().toISOString()
             })
-            .eq('id', currentUser.id);
+            .eq('id', window.currentUser.id);
 
         if (error) throw error;
     } catch (error) {
         console.error('Error updating presence:', error);
     }
-}
+};
 
-// Subscribe to presence changes
-function subscribeToPresence(userId, callback) {
-    return supabase
+// Subscribe to presence
+window.subscribeToPresence = function(userId, callback) {
+    return window.supabaseClient
         .channel('presence')
         .on(
             'postgres_changes',
@@ -132,14 +133,16 @@ function subscribeToPresence(userId, callback) {
             }
         )
         .subscribe();
-}
+};
 
-// Export functions
-window.supabaseClient = supabase;
-window.getCurrentUser = getCurrentUser;
-window.getUserProfile = getUserProfile;
-window.getPartnerProfile = getPartnerProfile;
-window.checkAuth = checkAuth;
-window.getRelationship = getRelationship;
-window.updatePresence = updatePresence;
-window.subscribeToPresence = subscribeToPresence;
+// Check auth
+window.checkAuth = async function() {
+    const user = await window.getCurrentUser();
+    if (!user) {
+        window.location.href = 'login.html';
+        return false;
+    }
+    return true;
+};
+
+console.log('✅ Supabase initialized');

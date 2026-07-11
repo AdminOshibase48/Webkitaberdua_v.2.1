@@ -1,7 +1,13 @@
-// Memories functionality
+// ============================================
+// MEMORIES MODULE
+// ============================================
+
 let currentMemories = [];
 
-// Add memory
+// ============================================
+// ADD MEMORY
+// ============================================
+
 async function addMemory(title, description, type, file, date) {
     try {
         const user = await getCurrentUser();
@@ -9,9 +15,8 @@ async function addMemory(title, description, type, file, date) {
 
         let fileUrl = null;
         if (file) {
-            // Upload to Supabase Storage
             const fileExt = file.name.split('.').pop();
-            const fileName = `${user.id}/${Date.now()}.${fileExt}`;
+            const fileName = `memories/${user.id}/${Date.now()}.${fileExt}`;
 
             const { data: uploadData, error: uploadError } = await supabaseClient.storage
                 .from('memories')
@@ -29,8 +34,8 @@ async function addMemory(title, description, type, file, date) {
         const memory = {
             user_id: user.id,
             title: title,
-            description: description,
-            type: type,
+            description: description || '',
+            type: type || 'photo',
             file_url: fileUrl,
             date: date || new Date().toISOString().split('T')[0]
         };
@@ -46,20 +51,24 @@ async function addMemory(title, description, type, file, date) {
         // Add XP for creating memories
         await addXP(10);
 
+        showToast('Memori berhasil disimpan! 📸', 'success');
         return data;
     } catch (error) {
         console.error('Add memory error:', error);
+        showToast('Gagal menyimpan memori', 'error');
         return null;
     }
 }
 
-// Get memories
+// ============================================
+// GET MEMORIES
+// ============================================
+
 async function getMemories(limit = 50) {
     try {
         const user = await getCurrentUser();
         if (!user) return [];
 
-        // Get user's memories and partner's memories
         const profile = await getUserProfile();
         const partnerId = profile?.partner_id;
 
@@ -71,7 +80,6 @@ async function getMemories(limit = 50) {
             .limit(limit);
 
         if (partnerId) {
-            // Also get partner's memories
             const { data: partnerMemories, error: partnerError } = await supabaseClient
                 .from('memories')
                 .select('*')
@@ -100,7 +108,10 @@ async function getMemories(limit = 50) {
     }
 }
 
-// Delete memory
+// ============================================
+// DELETE MEMORY
+// ============================================
+
 async function deleteMemory(memoryId) {
     try {
         const { error } = await supabaseClient
@@ -109,20 +120,24 @@ async function deleteMemory(memoryId) {
             .eq('id', memoryId);
 
         if (error) throw error;
+        showToast('Memori berhasil dihapus', 'success');
         return true;
     } catch (error) {
         console.error('Delete memory error:', error);
+        showToast('Gagal menghapus memori', 'error');
         return false;
     }
 }
 
-// Like memory
+// ============================================
+// LIKE MEMORY
+// ============================================
+
 async function likeMemory(memoryId) {
     try {
         const user = await getCurrentUser();
         if (!user) return false;
 
-        // Check if already liked
         const { data: existing, error: checkError } = await supabaseClient
             .from('memory_likes')
             .select('*')
@@ -133,24 +148,18 @@ async function likeMemory(memoryId) {
         if (checkError && checkError.code !== 'PGRST116') throw checkError;
 
         if (existing) {
-            // Unlike
-            const { error: deleteError } = await supabaseClient
+            await supabaseClient
                 .from('memory_likes')
                 .delete()
                 .eq('id', existing.id);
-
-            if (deleteError) throw deleteError;
             return false;
         } else {
-            // Like
-            const { error: insertError } = await supabaseClient
+            await supabaseClient
                 .from('memory_likes')
                 .insert({
                     memory_id: memoryId,
                     user_id: user.id
                 });
-
-            if (insertError) throw insertError;
             return true;
         }
     } catch (error) {
@@ -159,7 +168,10 @@ async function likeMemory(memoryId) {
     }
 }
 
-// Add comment to memory
+// ============================================
+// ADD COMMENT
+// ============================================
+
 async function addComment(memoryId, content) {
     try {
         const user = await getCurrentUser();
@@ -183,7 +195,10 @@ async function addComment(memoryId, content) {
     }
 }
 
-// Render memory card
+// ============================================
+// RENDER MEMORY CARD
+// ============================================
+
 function renderMemoryCard(memory) {
     const card = document.createElement('div');
     card.className = 'memory-card';
@@ -203,20 +218,25 @@ function renderMemoryCard(memory) {
 
     const date = document.createElement('div');
     date.className = 'memory-date';
-    date.textContent = new Date(memory.date || memory.created_at).toLocaleDateString();
-
-    const description = document.createElement('div');
-    description.className = 'memory-description';
-    description.textContent = memory.description || '';
+    date.textContent = formatDate(memory.date || memory.created_at, 'short');
 
     card.appendChild(title);
     card.appendChild(date);
-    if (memory.description) card.appendChild(description);
+
+    if (memory.description) {
+        const desc = document.createElement('div');
+        desc.className = 'memory-description';
+        desc.textContent = truncateText(memory.description, 60);
+        card.appendChild(desc);
+    }
 
     return card;
 }
 
-// Load memories
+// ============================================
+// LOAD MEMORIES
+// ============================================
+
 async function loadMemories(filter = 'all') {
     const container = document.getElementById('memories-grid');
     if (!container) return;
@@ -225,11 +245,10 @@ async function loadMemories(filter = 'all') {
     container.innerHTML = '';
 
     if (!memories || memories.length === 0) {
-        container.innerHTML = '<p class="empty-state">No memories yet. Start capturing your moments! 📸</p>';
+        container.innerHTML = '<p class="empty-state">Belum ada kenangan. Mulai abadikan momen! 📸</p>';
         return;
     }
 
-    // Filter
     let filtered = memories;
     if (filter !== 'all') {
         filtered = memories.filter(m => m.type === filter);
@@ -241,9 +260,18 @@ async function loadMemories(filter = 'all') {
     });
 }
 
-// Initialize memories
+// ============================================
+// INIT MEMORIES
+// ============================================
+
 document.addEventListener('DOMContentLoaded', async () => {
-    // Load memories
+    // Check auth
+    const user = await getCurrentUser();
+    if (!user) {
+        window.location.href = 'login.html';
+        return;
+    }
+
     await loadMemories();
 
     // Add memory button
@@ -253,7 +281,14 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     if (addBtn) {
         addBtn.addEventListener('click', () => {
-            if (modal) modal.classList.remove('hidden');
+            if (modal) {
+                modal.classList.remove('hidden');
+                // Set default date
+                const dateInput = document.getElementById('memory-date');
+                if (dateInput) {
+                    dateInput.value = new Date().toISOString().split('T')[0];
+                }
+            }
         });
     }
 
@@ -276,12 +311,9 @@ document.addEventListener('DOMContentLoaded', async () => {
 
             const result = await addMemory(title, description, type, file, date);
             if (result) {
-                showToast('Memory saved! 📸', 'success');
                 modal.classList.add('hidden');
                 memoryForm.reset();
                 await loadMemories();
-            } else {
-                showToast('Failed to save memory', 'error');
             }
         });
     }
@@ -296,10 +328,15 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
 });
 
-// Export functions
+// ============================================
+// EXPORTS
+// ============================================
+
 window.addMemory = addMemory;
 window.getMemories = getMemories;
 window.deleteMemory = deleteMemory;
 window.likeMemory = likeMemory;
 window.addComment = addComment;
 window.loadMemories = loadMemories;
+
+console.log('✅ Memories module loaded');

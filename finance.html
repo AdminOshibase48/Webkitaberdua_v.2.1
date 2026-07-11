@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Finance - OurStory Together</title>
+    <link rel="manifest" href="manifest.json" />
+    <link rel="icon" href="favicon.ico" />
+    <link rel="stylesheet" href="css/globals.css" />
+    <link rel="stylesheet" href="css/theme.css" />
+    <link rel="stylesheet" href="css/glass.css" />
+    <link rel="stylesheet" href="css/components.css" />
+    <link rel="stylesheet" href="css/responsive.css" />
+    <link rel="stylesheet" href="css/animations.css" />
+</head>
+<body>
+    <div id="app">
+        <header class="page-header glass">
+            <button class="back-btn" onclick="window.location.href='dashboard.html'">←</button>
+            <h1>💰 Shared Finance</h1>
+            <div></div>
+        </header>
+
+        <!-- Finance Summary -->
+        <div class="finance-summary">
+            <div class="summary-card glass">
+                <span class="summary-label">Total Balance</span>
+                <span class="summary-value" id="total-balance">Rp 0</span>
+            </div>
+            <div class="summary-card glass">
+                <span class="summary-label">Monthly Income</span>
+                <span class="summary-value income" id="total-income">Rp 0</span>
+            </div>
+            <div class="summary-card glass">
+                <span class="summary-label">Monthly Expenses</span>
+                <span class="summary-value expense" id="total-expense">Rp 0</span>
+            </div>
+            <div class="summary-card glass">
+                <span class="summary-label">Savings</span>
+                <span class="summary-value savings" id="total-savings">Rp 0</span>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="finance-actions">
+            <button class="action-btn glass" id="add-income">+ Income</button>
+            <button class="action-btn glass" id="add-expense">- Expense</button>
+            <button class="action-btn glass" id="add-savings">💾 Savings</button>
+            <button class="action-btn glass" id="add-budget">📊 Budget</button>
+        </div>
+
+        <!-- Recent Transactions -->
+        <div class="transactions glass">
+            <h3>Recent Transactions</h3>
+            <div id="transactions-list">
+                <p class="empty-state">No transactions yet</p>
+            </div>
+        </div>
+
+        <!-- Bottom Navigation -->
+        <nav class="bottom-nav glass">
+            <a href="dashboard.html" class="nav-item">
+                <span class="nav-icon">🏠</span>
+                <span class="nav-label">Home</span>
+            </a>
+            <a href="chat.html" class="nav-item">
+                <span class="nav-icon">💬</span>
+                <span class="nav-label">Chat</span>
+            </a>
+            <a href="memories.html" class="nav-item">
+                <span class="nav-icon">📸</span>
+                <span class="nav-label">Memories</span>
+            </a>
+            <a href="finance.html" class="nav-item active">
+                <span class="nav-icon">💰</span>
+                <span class="nav-label">Finance</span>
+            </a>
+            <a href="settings.html" class="nav-item">
+                <span class="nav-icon">⚙️</span>
+                <span class="nav-label">Settings</span>
+            </a>
+        </nav>
+    </div>
+
+    <!-- Modals -->
+    <div id="transaction-modal" class="modal hidden">
+        <div class="modal-content glass">
+            <h2 id="transaction-modal-title">Add Transaction</h2>
+            <form id="transaction-form">
+                <div class="form-group">
+                    <label for="transaction-type">Type</label>
+                    <select id="transaction-type" required>
+                        <option value="income">Income</option>
+                        <option value="expense">Expense</option>
+                        <option value="savings">Savings</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="transaction-amount">Amount (Rp)</label>
+                    <input type="number" id="transaction-amount" placeholder="0" required />
+                </div>
+                <div class="form-group">
+                    <label for="transaction-category">Category</label>
+                    <input type="text" id="transaction-category" placeholder="e.g., Food, Rent, Salary" />
+                </div>
+                <div class="form-group">
+                    <label for="transaction-description">Description</label>
+                    <input type="text" id="transaction-description" placeholder="Description" />
+                </div>
+                <button type="submit" class="btn btn-primary btn-full">Save Transaction</button>
+                <button type="button" class="btn btn-secondary btn-full" id="close-modal">Cancel</button>
+            </form>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/utils.js"></script>
+    <script src="js/supabase.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/finance.js"></script>
+    <script src="js/ui.js"></script>
+    <script src="js/theme.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>

@@ -1,44 +1,46 @@
-// Settings Management
+// ============================================
+// SETTINGS MODULE
+// ============================================
+
 let settingsData = {
     profile: null,
     partner: null,
     theme: localStorage.getItem('theme') || 'light',
-    aiModel: localStorage.getItem('ai_model') || 'google/gemini-2.0-flash-lite-preview-02-05:free'
+    aiModel: localStorage.getItem('ai_model') || 'nvidia/nemotron-3-super-120b-a12b:free'
 };
 
-// Load settings data
+// ============================================
+// LOAD SETTINGS
+// ============================================
+
 async function loadSettings() {
     try {
         const user = await getCurrentUser();
         if (!user) {
-            window.location.href = '/login.html';
+            window.location.href = 'login.html';
             return;
         }
 
-        // Get user profile
         const profile = await getUserProfile();
         if (profile) {
             settingsData.profile = profile;
             populateProfileForm(profile);
         }
 
-        // Get partner profile
         const partner = await getPartnerProfile();
         if (partner) {
             settingsData.partner = partner;
             populatePartnerForm(partner);
         }
 
-        // Load theme
         const themeToggle = document.getElementById('dark-mode-toggle');
         if (themeToggle) {
             themeToggle.checked = settingsData.theme === 'dark';
         }
 
-        // Load AI settings
         loadAISettings();
+        updateRelationshipInfo();
 
-        // Update user email display
         const emailEl = document.getElementById('user-email');
         if (emailEl) {
             emailEl.textContent = user.email;
@@ -52,26 +54,21 @@ async function loadSettings() {
     }
 }
 
-// Populate profile form
+// ============================================
+// POPULATE FORMS
+// ============================================
+
 function populateProfileForm(profile) {
     const nameInput = document.getElementById('display-name');
     if (nameInput && profile.full_name) {
         nameInput.value = profile.full_name;
     }
-
-    const avatarPreview = document.getElementById('avatar-preview');
-    if (avatarPreview && profile.avatar_url) {
-        avatarPreview.src = profile.avatar_url;
-        avatarPreview.style.display = 'block';
-    }
 }
 
-// Populate partner form
 function populatePartnerForm(partner) {
     const partnerEmail = document.getElementById('partner-email-settings');
     if (partnerEmail && partner.email) {
         partnerEmail.value = partner.email;
-        partnerEmail.disabled = true;
     }
 
     const partnerNameDisplay = document.getElementById('partner-name-display');
@@ -86,50 +83,47 @@ function populatePartnerForm(partner) {
     }
 }
 
-// Load AI settings
+// ============================================
+// AI SETTINGS
+// ============================================
+
 function loadAISettings() {
     const modelSelect = document.getElementById('ai-model-select');
-    if (modelSelect) {
-        const models = getAvailableModels();
-        // Clear existing options
-        modelSelect.innerHTML = '';
-        
-        // Add options
-        Object.entries(models).forEach(([value, label]) => {
-            const option = document.createElement('option');
-            option.value = value;
-            option.textContent = label;
-            if (value === settingsData.aiModel) {
-                option.selected = true;
-            }
-            modelSelect.appendChild(option);
-        });
+    if (!modelSelect) return;
 
-        // Handle model change
-        modelSelect.addEventListener('change', (e) => {
-            const newModel = e.target.value;
-            settingsData.aiModel = newModel;
-            setUserModel(newModel);
-            showToast(`Model AI diubah ke: ${models[newModel] || newModel}`, 'success');
-            updateAISettingsInfo();
-        });
-    }
+    const models = getAvailableModels();
+    modelSelect.innerHTML = '';
 
-    // Update AI settings info
+    Object.entries(models).forEach(([value, label]) => {
+        const option = document.createElement('option');
+        option.value = value;
+        option.textContent = label;
+        if (value === settingsData.aiModel) {
+            option.selected = true;
+        }
+        modelSelect.appendChild(option);
+    });
+
+    modelSelect.addEventListener('change', (e) => {
+        const newModel = e.target.value;
+        settingsData.aiModel = newModel;
+        setUserModel(newModel);
+        updateAISettingsInfo();
+    });
+
     updateAISettingsInfo();
 }
 
-// Update AI settings info display
 function updateAISettingsInfo() {
-    const infoContainer = document.getElementById('ai-settings-info');
-    if (!infoContainer) return;
+    const container = document.getElementById('ai-settings-info');
+    if (!container) return;
 
     const currentModel = getUserModel();
     const models = getAvailableModels();
     const modelName = models[currentModel] || currentModel;
     const apiKey = getApiKey();
 
-    infoContainer.innerHTML = `
+    container.innerHTML = `
         <div class="settings-info">
             <p>🔑 <span class="label">API Key:</span> ${apiKey ? '✅ Terkonfigurasi (Developer)' : '❌ Tidak ditemukan'}</p>
             <p>🤖 <span class="label">Current Model:</span> ${modelName}</p>
@@ -141,7 +135,10 @@ function updateAISettingsInfo() {
     `;
 }
 
-// Update profile
+// ============================================
+// UPDATE PROFILE
+// ============================================
+
 async function updateProfile() {
     try {
         const user = await getCurrentUser();
@@ -158,7 +155,7 @@ async function updateProfile() {
             return;
         }
 
-        const { error } = await supabaseClient
+        await supabaseClient
             .from('profiles')
             .update({
                 full_name: fullName,
@@ -166,55 +163,30 @@ async function updateProfile() {
             })
             .eq('id', user.id);
 
-        if (error) throw error;
-
-        // Handle avatar upload if exists
-        const avatarInput = document.getElementById('avatar-upload');
-        if (avatarInput?.files?.length > 0) {
-            const file = avatarInput.files[0];
-            const fileExt = file.name.split('.').pop();
-            const fileName = `avatars/${user.id}/${Date.now()}.${fileExt}`;
-
-            const { error: uploadError } = await supabaseClient.storage
-                .from('profiles')
-                .upload(fileName, file);
-
-            if (!uploadError) {
-                const { data: { publicUrl } } = supabaseClient.storage
-                    .from('profiles')
-                    .getPublicUrl(fileName);
-
-                await supabaseClient
-                    .from('profiles')
-                    .update({ avatar_url: publicUrl })
-                    .eq('id', user.id);
-            }
-        }
-
         showToast('Profil berhasil diperbarui! ✅', 'success');
         
-        // Refresh profile data
         const updatedProfile = await getUserProfile();
         if (updatedProfile) {
             settingsData.profile = updatedProfile;
             populateProfileForm(updatedProfile);
         }
 
-        // Update UI elements
-        const userNameElements = document.querySelectorAll('#user-name, .user-name');
-        userNameElements.forEach(el => {
+        document.querySelectorAll('#user-name, .user-name').forEach(el => {
             el.textContent = fullName;
         });
 
         return true;
     } catch (error) {
         console.error('Update profile error:', error);
-        showToast('Gagal memperbarui profil: ' + error.message, 'error');
+        showToast('Gagal memperbarui profil', 'error');
         return false;
     }
 }
 
-// Link partner
+// ============================================
+// LINK PARTNER
+// ============================================
+
 async function linkPartnerFromSettings() {
     try {
         const user = await getCurrentUser();
@@ -236,7 +208,6 @@ async function linkPartnerFromSettings() {
             return;
         }
 
-        // Check if partner exists
         const { data: partner, error: findError } = await supabaseClient
             .from('profiles')
             .select('id, full_name, email')
@@ -253,15 +224,13 @@ async function linkPartnerFromSettings() {
             return;
         }
 
-        // Check existing relationship
-        const { data: existingRel, error: relError } = await supabaseClient
+        const { data: existingRel } = await supabaseClient
             .from('relationships')
             .select('*')
             .or(`user1_id.eq.${user.id},user2_id.eq.${user.id}`)
             .single();
 
         if (existingRel) {
-            // Update existing relationship
             if (existingRel.user1_id === user.id) {
                 await supabaseClient
                     .from('relationships')
@@ -274,7 +243,6 @@ async function linkPartnerFromSettings() {
                     .eq('id', existingRel.id);
             }
         } else {
-            // Create new relationship
             await supabaseClient
                 .from('relationships')
                 .insert({
@@ -285,7 +253,6 @@ async function linkPartnerFromSettings() {
                 });
         }
 
-        // Update profiles
         await supabaseClient
             .from('profiles')
             .update({ partner_id: partner.id })
@@ -299,22 +266,25 @@ async function linkPartnerFromSettings() {
         showToast(`Berhasil terhubung dengan ${partner.full_name}! 💕`, 'success');
         showConfetti(30);
 
-        // Refresh partner data
         const updatedPartner = await getPartnerProfile();
         if (updatedPartner) {
             settingsData.partner = updatedPartner;
             populatePartnerForm(updatedPartner);
         }
 
+        updateRelationshipInfo();
         return true;
     } catch (error) {
         console.error('Link partner error:', error);
-        showToast('Gagal menghubungkan partner: ' + error.message, 'error');
+        showToast('Gagal menghubungkan partner', 'error');
         return false;
     }
 }
 
-// Unlink partner
+// ============================================
+// UNLINK PARTNER
+// ============================================
+
 async function unlinkPartner() {
     try {
         const user = await getCurrentUser();
@@ -324,8 +294,7 @@ async function unlinkPartner() {
             return;
         }
 
-        // Get relationship
-        const { data: rel, error: relError } = await supabaseClient
+        const { data: rel } = await supabaseClient
             .from('relationships')
             .select('*')
             .or(`user1_id.eq.${user.id},user2_id.eq.${user.id}`)
@@ -338,7 +307,6 @@ async function unlinkPartner() {
                 .eq('id', rel.id);
         }
 
-        // Update profiles
         await supabaseClient
             .from('profiles')
             .update({ partner_id: null })
@@ -354,14 +322,13 @@ async function unlinkPartner() {
 
         showToast('Berhasil memutuskan hubungan 💔', 'info');
         
-        // Clear partner data
         settingsData.partner = null;
         const partnerEmail = document.getElementById('partner-email-settings');
         if (partnerEmail) {
             partnerEmail.value = '';
-            partnerEmail.disabled = false;
         }
 
+        updateRelationshipInfo();
         return true;
     } catch (error) {
         console.error('Unlink partner error:', error);
@@ -370,7 +337,10 @@ async function unlinkPartner() {
     }
 }
 
-// Delete account
+// ============================================
+// DELETE ACCOUNT
+// ============================================
+
 async function deleteAccount() {
     try {
         const user = await getCurrentUser();
@@ -384,7 +354,6 @@ async function deleteAccount() {
             return;
         }
 
-        // Delete user data from tables
         const tables = [
             'profiles', 'relationships', 'messages', 'transactions',
             'memories', 'memory_likes', 'memory_comments', 'events',
@@ -398,40 +367,23 @@ async function deleteAccount() {
                 .eq('user_id', user.id);
         }
 
-        // Delete auth user
-        const { error } = await supabaseClient.auth.admin.deleteUser(user.id);
-        if (error) throw error;
-
-        // Sign out
+        await supabaseClient.auth.admin.deleteUser(user.id);
         await signOut();
-        showToast('Akun berhasil dihapus. Semoga sukses selalu! 💕', 'success');
-        window.location.href = '/';
         
+        showToast('Akun berhasil dihapus. Semoga sukses selalu! 💕', 'success');
+        window.location.href = 'index.html';
         return true;
     } catch (error) {
         console.error('Delete account error:', error);
-        showToast('Gagal menghapus akun: ' + error.message, 'error');
+        showToast('Gagal menghapus akun', 'error');
         return false;
     }
 }
 
-// Sign out handler
-async function handleSignOut() {
-    try {
-        const result = await signOut();
-        if (result.success) {
-            showToast('Berhasil keluar 👋', 'success');
-            window.location.href = '/';
-        } else {
-            showToast('Gagal keluar: ' + result.error, 'error');
-        }
-    } catch (error) {
-        console.error('Sign out error:', error);
-        showToast('Gagal keluar', 'error');
-    }
-}
+// ============================================
+// EXPORT/IMPORT DATA
+// ============================================
 
-// Export data
 async function exportData() {
     try {
         const user = await getCurrentUser();
@@ -442,7 +394,6 @@ async function exportData() {
 
         showToast('Mengumpulkan data... 📊', 'info');
 
-        // Collect all user data
         const tables = [
             'profiles', 'relationships', 'messages', 'transactions',
             'memories', 'memory_likes', 'memory_comments', 'events',
@@ -462,18 +413,12 @@ async function exportData() {
             }
         }
 
-        // Also get partner data if exists
         const partner = await getPartnerProfile();
-        if (partner) {
-            data.partner = partner;
-        }
+        if (partner) data.partner = partner;
 
         const relationship = await getRelationship();
-        if (relationship) {
-            data.relationship = relationship;
-        }
+        if (relationship) data.relationship = relationship;
 
-        // Create JSON file
         const json = JSON.stringify(data, null, 2);
         const blob = new Blob([json], { type: 'application/json' });
         const url = URL.createObjectURL(blob);
@@ -490,190 +435,19 @@ async function exportData() {
     }
 }
 
-// Import data
-async function importData(file) {
-    try {
-        const user = await getCurrentUser();
-        if (!user) {
-            showToast('Silakan login terlebih dahulu', 'error');
-            return;
-        }
+// ============================================
+// RELATIONSHIP INFO
+// ============================================
 
-        if (!confirm('⚠️ Mengimpor data akan menimpa data yang ada. Lanjutkan?')) {
-            return;
-        }
-
-        const text = await file.text();
-        const data = JSON.parse(text);
-
-        // Validate data
-        if (!data.user || data.user.id !== user.id) {
-            showToast('Data tidak valid atau bukan milik Anda', 'error');
-            return;
-        }
-
-        showToast('Mengimpor data... ⏳', 'info');
-
-        // Import each table
-        const tables = ['messages', 'transactions', 'memories', 'events', 'notifications'];
-        for (const table of tables) {
-            if (data[table] && Array.isArray(data[table])) {
-                for (const item of data[table]) {
-                    // Check if exists
-                    const { data: existing } = await supabaseClient
-                        .from(table)
-                        .select('id')
-                        .eq('id', item.id)
-                        .single();
-
-                    if (existing) {
-                        // Update
-                        await supabaseClient
-                            .from(table)
-                            .update(item)
-                            .eq('id', item.id);
-                    } else {
-                        // Insert
-                        await supabaseClient
-                            .from(table)
-                            .insert(item);
-                    }
-                }
-            }
-        }
-
-        showToast('Data berhasil diimpor! ✅', 'success');
-        return true;
-    } catch (error) {
-        console.error('Import data error:', error);
-        showToast('Gagal mengimpor data: ' + error.message, 'error');
-        return false;
-    }
-}
-
-// Initialize settings page
-document.addEventListener('DOMContentLoaded', async () => {
-    // Check auth
-    const user = await getCurrentUser();
-    if (!user) {
-        window.location.href = '/login.html';
-        return;
-    }
-
-    // Load settings
-    await loadSettings();
-
-    // Set up event listeners
-    setupSettingsEventListeners();
-
-    // Update relationship info
-    updateRelationshipInfo();
-
-    // Set up import handler
-    const importInput = document.getElementById('import-data');
-    if (importInput) {
-        importInput.addEventListener('change', async (e) => {
-            if (e.target.files.length > 0) {
-                await importData(e.target.files[0]);
-                importInput.value = '';
-            }
-        });
-    }
-
-    console.log('⚙️ Settings page initialized');
-});
-
-// Setup event listeners
-function setupSettingsEventListeners() {
-    // Update profile
-    const updateProfileBtn = document.getElementById('update-profile');
-    if (updateProfileBtn) {
-        updateProfileBtn.addEventListener('click', updateProfile);
-    }
-
-    // Link partner
-    const linkPartnerBtn = document.getElementById('link-partner');
-    if (linkPartnerBtn) {
-        linkPartnerBtn.addEventListener('click', linkPartnerFromSettings);
-    }
-
-    // Unlink partner
-    const unlinkPartnerBtn = document.getElementById('unlink-partner');
-    if (unlinkPartnerBtn) {
-        unlinkPartnerBtn.addEventListener('click', unlinkPartner);
-    }
-
-    // Delete account
-    const deleteAccountBtn = document.getElementById('delete-account');
-    if (deleteAccountBtn) {
-        deleteAccountBtn.addEventListener('click', deleteAccount);
-    }
-
-    // Sign out
-    const signOutBtn = document.getElementById('sign-out');
-    if (signOutBtn) {
-        signOutBtn.addEventListener('click', handleSignOut);
-    }
-
-    // Export data
-    const exportBtn = document.getElementById('export-data');
-    if (exportBtn) {
-        exportBtn.addEventListener('click', exportData);
-    }
-
-    // Theme toggle
-    const themeToggle = document.getElementById('dark-mode-toggle');
-    if (themeToggle) {
-        themeToggle.addEventListener('change', (e) => {
-            const theme = e.target.checked ? 'dark' : 'light';
-            applyTheme(theme);
-            settingsData.theme = theme;
-        });
-    }
-
-    // Test AI connection
-    const testAIbtn = document.getElementById('test-ai-connection');
-    if (testAIbtn) {
-        testAIbtn.addEventListener('click', async () => {
-            const result = await sendAIMessage('Hello! Please respond with a short greeting.');
-            if (result) {
-                showToast('✅ Koneksi AI berhasil!', 'success');
-            } else {
-                showToast('❌ Koneksi AI gagal. Periksa API key.', 'error');
-            }
-        });
-    }
-
-    // Analyze relationship
-    const analyzeBtn = document.getElementById('ai-analyze-btn');
-    if (analyzeBtn) {
-        analyzeBtn.addEventListener('click', async () => {
-            const responseContainer = document.getElementById('ai-response');
-            if (responseContainer) {
-                responseContainer.textContent = '🔍 Menganalisis hubungan Anda...';
-            }
-
-            const apiKey = getApiKey();
-            if (!apiKey) {
-                showToast('API Key tidak ditemukan. Hubungi developer.', 'error');
-                return;
-            }
-
-            const response = await analyzeRelationship();
-            if (response && responseContainer) {
-                responseContainer.textContent = response;
-            }
-        });
-    }
-}
-
-// Update relationship info
 async function updateRelationshipInfo() {
-    const relationship = await getRelationship();
-    if (!relationship) return;
-
     const container = document.getElementById('relationship-info');
     if (!container) return;
+
+    const relationship = await getRelationship();
+    if (!relationship) {
+        container.innerHTML = '<p class="empty-state">Belum ada hubungan yang terhubung</p>';
+        return;
+    }
 
     const startDate = new Date(relationship.start_date);
     const now = new Date();
@@ -683,11 +457,11 @@ async function updateRelationshipInfo() {
         <div class="relationship-stats">
             <div class="stat-item">
                 <span class="stat-label">Together Since</span>
-                <span class="stat-value">${startDate.toLocaleDateString()}</span>
+                <span class="stat-value">${formatDate(startDate, 'long')}</span>
             </div>
             <div class="stat-item">
                 <span class="stat-label">Days Together</span>
-                <span class="stat-value">${diffDays} days</span>
+                <span class="stat-value">${diffDays} hari</span>
             </div>
             <div class="stat-item">
                 <span class="stat-label">Love Level</span>
@@ -695,7 +469,7 @@ async function updateRelationshipInfo() {
             </div>
             <div class="stat-item">
                 <span class="stat-label">Streak</span>
-                <span class="stat-value">🔥 ${relationship.streak_days || 0} days</span>
+                <span class="stat-value">🔥 ${relationship.streak_days || 0} hari</span>
             </div>
             <div class="stat-item">
                 <span class="stat-label">Status</span>
@@ -705,16 +479,76 @@ async function updateRelationshipInfo() {
     `;
 }
 
-// Export settings functions
+// ============================================
+// INIT SETTINGS
+// ============================================
+
+document.addEventListener('DOMContentLoaded', async () => {
+    // Check if on settings page
+    if (!window.location.pathname.includes('settings.html')) return;
+
+    const user = await getCurrentUser();
+    if (!user) {
+        window.location.href = 'login.html';
+        return;
+    }
+
+    await loadSettings();
+
+    // Event listeners
+    document.getElementById('update-profile')?.addEventListener('click', updateProfile);
+    document.getElementById('link-partner')?.addEventListener('click', linkPartnerFromSettings);
+    document.getElementById('unlink-partner')?.addEventListener('click', unlinkPartner);
+    document.getElementById('delete-account')?.addEventListener('click', deleteAccount);
+    document.getElementById('export-data')?.addEventListener('click', exportData);
+    document.getElementById('sign-out')?.addEventListener('click', async () => {
+        const result = await signOut();
+        if (result.success) {
+            showToast('Berhasil keluar 👋', 'success');
+            window.location.href = 'index.html';
+        }
+    });
+
+    // Test AI connection
+    document.getElementById('test-ai-connection')?.addEventListener('click', async () => {
+        const result = await sendAIMessage('Hello! Please respond with a short greeting.');
+        if (result) {
+            showToast('✅ Koneksi AI berhasil!', 'success');
+        } else {
+            showToast('❌ Koneksi AI gagal. Periksa API key.', 'error');
+        }
+    });
+
+    // Analyze relationship
+    document.getElementById('ai-analyze-btn')?.addEventListener('click', async () => {
+        const responseContainer = document.getElementById('ai-response');
+        if (responseContainer) {
+            responseContainer.textContent = '🔍 Menganalisis hubungan Anda...';
+        }
+
+        const apiKey = getApiKey();
+        if (!apiKey) {
+            showToast('API Key tidak ditemukan. Hubungi developer.', 'error');
+            return;
+        }
+
+        const response = await analyzeRelationship();
+        if (response && responseContainer) {
+            responseContainer.textContent = response;
+        }
+    });
+});
+
+// ============================================
+// EXPORTS
+// ============================================
+
 window.loadSettings = loadSettings;
 window.updateProfile = updateProfile;
 window.linkPartnerFromSettings = linkPartnerFromSettings;
 window.unlinkPartner = unlinkPartner;
 window.deleteAccount = deleteAccount;
-window.handleSignOut = handleSignOut;
 window.exportData = exportData;
-window.importData = importData;
-window.updateAISettingsInfo = updateAISettingsInfo;
-window.loadAISettings = loadAISettings;
+window.updateRelationshipInfo = updateRelationshipInfo;
 
-console.log('⚙️ Settings module loaded');
+console.log('✅ Settings module loaded');

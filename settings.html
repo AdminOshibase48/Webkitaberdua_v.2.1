@@ -36,15 +36,140 @@
                 <button class="btn btn-secondary" id="update-profile">Update Profile</button>
             </section>
 
-            <!-- Partner Section -->
-            <section class="settings-section glass">
-                <h2>💑 Partner</h2>
-                <div class="settings-item">
-                    <span>Partner's Email</span>
-                    <input type="email" id="partner-email-settings" placeholder="partner@example.com" />
-                </div>
-                <button class="btn btn-secondary" id="link-partner">Link Partner</button>
-            </section>
+        
+<section class="settings-section glass">
+    <h2>💑 Relationship</h2>
+    <div id="relationship-info">
+        <p class="loading">Loading relationship data...</p>
+    </div>
+</section>
+
+<!-- Add unlink partner button -->
+<section class="settings-section glass">
+    <h2>💑 Partner</h2>
+    <div class="settings-item">
+        <span>Partner's Email</span>
+        <input type="email" id="partner-email-settings" placeholder="partner@example.com" />
+    </div>
+    <div style="display: flex; gap: 0.5rem; margin-top: 0.5rem; flex-wrap: wrap;">
+        <button class="btn btn-secondary" id="link-partner">Link Partner</button>
+        <button class="btn btn-danger" id="unlink-partner" style="background: #ff3b30;">Unlink Partner</button>
+    </div>
+    <div id="partner-info" style="margin-top: 0.5rem;">
+        <p>Partner: <span id="partner-name-display">-</span></p>
+        <p>Status: <span id="partner-status-display">-</span></p>
+    </div>
+</section>
+
+<!-- AI Settings - Enhanced -->
+<section class="settings-section glass">
+    <h2>🤖 AI Assistant</h2>
+    
+    <div id="ai-settings-info">
+        <!-- Populated by JavaScript -->
+    </div>
+    
+    <div class="settings-item">
+        <span>AI Model</span>
+        <select id="ai-model-select" class="ai-model-select">
+            <!-- Options populated by JavaScript -->
+        </select>
+    </div>
+    
+    <div style="display: flex; gap: 0.5rem; margin-top: 0.5rem; flex-wrap: wrap;">
+        <button class="btn btn-secondary" id="test-ai-connection">Test Connection</button>
+        <button class="btn btn-primary" id="ai-analyze-btn">🔍 Analyze Relationship</button>
+    </div>
+    
+    <div style="margin-top: 1rem;">
+        <div id="ai-response" class="ai-response-container">
+            <p style="color: var(--text-secondary);">Klik "Analyze Relationship" untuk analisis lengkap hubungan Anda</p>
+        </div>
+    </div>
+</section>
+
+<!-- Data Management -->
+<section class="settings-section glass">
+    <h2>📁 Data Management</h2>
+    <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+        <button class="btn btn-secondary" id="export-data">📤 Export Data</button>
+        <label class="btn btn-secondary" style="cursor: pointer;">
+            📥 Import Data
+            <input type="file" id="import-data" accept=".json" style="display: none;" />
+        </label>
+    </div>
+    <p style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 0.5rem;">
+        Export semua data Anda sebagai file JSON atau import data dari backup sebelumnya.
+    </p>
+</section>
+
+<!-- Update Danger Zone -->
+<section class="settings-section glass danger">
+    <h2>⚠️ Danger Zone</h2>
+    <p style="font-size: 0.9rem; color: var(--text-secondary); margin-bottom: 1rem;">
+        Tindakan ini tidak dapat dibatalkan. Semua data Anda akan dihapus permanen.
+    </p>
+    <button class="btn btn-danger" id="delete-account">Delete Account</button>
+</section>
+
+<!-- Update Sign Out button -->
+<button class="btn btn-primary btn-full" id="sign-out" style="margin-top: 1rem;">
+    Sign Out 👋
+</button>
+
+<!-- Add CSS for relationship stats -->
+<style>
+.relationship-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 0.75rem;
+}
+
+.stat-item {
+    padding: 0.75rem;
+    background: var(--glass-bg);
+    border-radius: var(--radius);
+    text-align: center;
+}
+
+.stat-item .stat-label {
+    display: block;
+    font-size: 0.7rem;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 0.25rem;
+}
+
+.stat-item .stat-value {
+    font-size: 1.1rem;
+    font-weight: 600;
+}
+
+.status-active {
+    color: #34c759;
+}
+
+.status-pending {
+    color: #ff9500;
+}
+
+.status-inactive {
+    color: #ff3b30;
+}
+
+.status-online {
+    color: #34c759;
+}
+
+.status-offline {
+    color: #8e8e93;
+}
+
+.status-away {
+    color: #ff9500;
+}
+</style>
 
             <!-- Theme Section -->
             <section class="settings-section glass">
@@ -133,5 +258,6 @@
     <script src="js/ui.js"></script>
     <script src="js/theme.js"></script>
     <script src="js/app.js"></script>
+     <script src="js/settings.js"></script>
 </body>
 </html>

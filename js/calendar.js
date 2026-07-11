@@ -1,8 +1,14 @@
-// Calendar functionality
+// ============================================
+// CALENDAR MODULE
+// ============================================
+
 let currentDate = new Date();
 let currentEvents = [];
 
-// Add event
+// ============================================
+// ADD EVENT
+// ============================================
+
 async function addEvent(title, date, type = 'reminder') {
     try {
         const user = await getCurrentUser();
@@ -23,17 +29,20 @@ async function addEvent(title, date, type = 'reminder') {
 
         if (error) throw error;
 
-        // Add XP for planning
         await addXP(5);
-
+        showToast('Event berhasil ditambahkan! 📅', 'success');
         return data;
     } catch (error) {
         console.error('Add event error:', error);
+        showToast('Gagal menambahkan event', 'error');
         return null;
     }
 }
 
-// Get events
+// ============================================
+// GET EVENTS
+// ============================================
+
 async function getEvents(startDate, endDate) {
     try {
         const user = await getCurrentUser();
@@ -80,7 +89,10 @@ async function getEvents(startDate, endDate) {
     }
 }
 
-// Delete event
+// ============================================
+// DELETE EVENT
+// ============================================
+
 async function deleteEvent(eventId) {
     try {
         const { error } = await supabaseClient
@@ -89,14 +101,19 @@ async function deleteEvent(eventId) {
             .eq('id', eventId);
 
         if (error) throw error;
+        showToast('Event berhasil dihapus', 'success');
         return true;
     } catch (error) {
         console.error('Delete event error:', error);
+        showToast('Gagal menghapus event', 'error');
         return false;
     }
 }
 
-// Generate calendar
+// ============================================
+// GENERATE CALENDAR
+// ============================================
+
 function generateCalendar(date, events) {
     const month = date.getMonth();
     const year = date.getFullYear();
@@ -105,15 +122,13 @@ function generateCalendar(date, events) {
     const daysInMonth = new Date(year, month + 1, 0).getDate();
     const today = new Date();
 
-    // Get current month name
-    const monthNames = ['January', 'February', 'March', 'April', 'May', 'June',
-        'July', 'August', 'September', 'October', 'November', 'December'];
-    const monthName = monthNames[month];
+    const monthNames = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
+        'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
 
     // Update header
     const header = document.getElementById('current-month');
     if (header) {
-        header.textContent = `${monthName} ${year}`;
+        header.textContent = `${monthNames[month]} ${year}`;
     }
 
     // Generate grid
@@ -123,12 +138,12 @@ function generateCalendar(date, events) {
     grid.innerHTML = '';
 
     // Day names
-    const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    const dayNames = ['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'];
     dayNames.forEach(day => {
         const div = document.createElement('div');
         div.className = 'calendar-day';
         div.style.fontWeight = '600';
-        div.style.fontSize = '0.75rem';
+        div.style.fontSize = '0.7rem';
         div.style.color = 'var(--text-secondary)';
         div.textContent = day;
         grid.appendChild(div);
@@ -159,7 +174,6 @@ function generateCalendar(date, events) {
         div.dataset.date = dateStr;
 
         div.addEventListener('click', () => {
-            // Show events for this day
             showDayEvents(dateStr);
         });
 
@@ -167,14 +181,17 @@ function generateCalendar(date, events) {
     }
 }
 
-// Show events for a specific day
+// ============================================
+// SHOW DAY EVENTS
+// ============================================
+
 function showDayEvents(dateStr) {
     const events = currentEvents.filter(e => e.date === dateStr);
     const container = document.getElementById('events-list');
     if (!container) return;
 
     if (events.length === 0) {
-        container.innerHTML = '<p class="empty-state">No events on this day</p>';
+        container.innerHTML = '<p class="empty-state">Tidak ada event pada hari ini</p>';
         return;
     }
 
@@ -188,24 +205,31 @@ function showDayEvents(dateStr) {
         </div>
     `).join('');
 
-    // Add delete handlers
     container.querySelectorAll('.delete-event-btn').forEach(btn => {
         btn.addEventListener('click', async (e) => {
             const id = e.target.dataset.id;
-            if (confirm('Delete this event?')) {
+            if (confirm('Hapus event ini?')) {
                 await deleteEvent(id);
-                // Refresh calendar
                 const events = await getEvents();
                 generateCalendar(currentDate, events);
                 showDayEvents(dateStr);
-                showToast('Event deleted', 'success');
             }
         });
     });
 }
 
-// Initialize calendar
+// ============================================
+// INIT CALENDAR
+// ============================================
+
 document.addEventListener('DOMContentLoaded', async () => {
+    // Check auth
+    const user = await getCurrentUser();
+    if (!user) {
+        window.location.href = 'login.html';
+        return;
+    }
+
     // Load events
     const events = await getEvents();
     generateCalendar(currentDate, events);
@@ -237,11 +261,12 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     if (addBtn) {
         addBtn.addEventListener('click', () => {
-            if (modal) modal.classList.remove('hidden');
-            // Set default date to today
-            const dateInput = document.getElementById('event-date');
-            if (dateInput) {
-                dateInput.value = new Date().toISOString().split('T')[0];
+            if (modal) {
+                modal.classList.remove('hidden');
+                const dateInput = document.getElementById('event-date');
+                if (dateInput) {
+                    dateInput.value = new Date().toISOString().split('T')[0];
+                }
             }
         });
     }
@@ -263,21 +288,22 @@ document.addEventListener('DOMContentLoaded', async () => {
 
             const result = await addEvent(title, date, type);
             if (result) {
-                showToast('Event added! 📅', 'success');
                 modal.classList.add('hidden');
                 eventForm.reset();
-                // Refresh calendar
                 const events = await getEvents();
                 generateCalendar(currentDate, events);
-            } else {
-                showToast('Failed to add event', 'error');
             }
         });
     }
 });
 
-// Export functions
+// ============================================
+// EXPORTS
+// ============================================
+
 window.addEvent = addEvent;
 window.getEvents = getEvents;
 window.deleteEvent = deleteEvent;
 window.generateCalendar = generateCalendar;
+
+console.log('✅ Calendar module loaded');

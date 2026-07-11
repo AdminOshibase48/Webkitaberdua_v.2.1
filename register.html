@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="id">
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Get Started - OurStory Together</title>
+    <title>Daftar - OurStory Together</title>
     <link rel="manifest" href="manifest.json" />
     <link rel="icon" href="favicon.ico" />
     <link rel="stylesheet" href="css/globals.css" />
@@ -17,33 +17,37 @@
     <div class="auth-container">
         <div class="auth-card glass">
             <div class="auth-header">
-                <div class="logo">💕 OurStory</div>
-                <h1>Start Your Journey</h1>
-                <p>Create your account and begin your story</p>
+                <div class="logo">
+                    <span class="logo-icon">💕</span>
+                    <span class="logo-text">OurStory</span>
+                </div>
+                <h1>Mulai Perjalanan Anda</h1>
+                <p>Buat akun dan mulailah cerita cinta Anda</p>
             </div>
             
             <form id="register-form" class="auth-form">
                 <div class="form-group">
-                    <label for="full-name">Full Name</label>
-                    <input type="text" id="full-name" placeholder="Your full name" required />
+                    <label for="full-name">Nama Lengkap</label>
+                    <input type="text" id="full-name" placeholder="Nama lengkap Anda" required autocomplete="name" />
                 </div>
                 <div class="form-group">
-                    <label for="email">Email Address</label>
-                    <input type="email" id="email" placeholder="you@example.com" required />
+                    <label for="email">Alamat Email</label>
+                    <input type="email" id="email" placeholder="anda@example.com" required autocomplete="email" />
                 </div>
                 <div class="form-group">
-                    <label for="password">Password</label>
-                    <input type="password" id="password" placeholder="Min 6 characters" required minlength="6" />
+                    <label for="password">Kata Sandi</label>
+                    <input type="password" id="password" placeholder="Minimal 6 karakter" required minlength="6" autocomplete="new-password" />
                 </div>
                 <div class="form-group">
-                    <label for="partner-email">Partner's Email (Optional)</label>
-                    <input type="email" id="partner-email" placeholder="partner@example.com" />
+                    <label for="partner-email">Email Pasangan (Opsional)</label>
+                    <input type="email" id="partner-email" placeholder="pasangan@example.com" autocomplete="email" />
+                    <small style="color: var(--text-secondary); font-size: 0.75rem;">Masukkan email pasangan jika sudah mendaftar</small>
                 </div>
-                <button type="submit" class="btn btn-primary btn-full">Create Account ✨</button>
+                <button type="submit" class="btn btn-primary btn-full">Buat Akun ✨</button>
             </form>
             
             <div class="auth-footer">
-                <p>Already have an account? <a href="/login.html">Sign in</a></p>
+                <p>Sudah punya akun? <a href="login.html">Masuk</a></p>
             </div>
         </div>
     </div>
@@ -51,6 +55,8 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="js/utils.js"></script>
     <script src="js/supabase.js"></script>
+    <script src="js/ui.js"></script>
     <script src="js/auth.js"></script>
+    <script src="js/app.js"></script>
 </body>
 </html>

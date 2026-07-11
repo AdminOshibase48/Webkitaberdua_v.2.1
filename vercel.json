@@ -1,23 +1,10 @@
 {
   "version": 2,
-  "builds": [
-    {
-      "src": "*.html",
-      "use": "@vercel/static"
-    },
-    {
-      "src": "css/*.css",
-      "use": "@vercel/static"
-    },
-    {
-      "src": "js/*.js",
-      "use": "@vercel/static"
-    },
-    {
-      "src": "assets/**",
-      "use": "@vercel/static"
-    }
-  ],
+  "buildCommand": "echo 'No build needed'",
+  "outputDirectory": ".",
+  "installCommand": "echo 'No install needed'",
+  "devCommand": "echo 'No dev command'",
+  "framework": null,
   "routes": [
     {
       "src": "/",
@@ -70,6 +57,22 @@
     {
       "src": "/favicon.ico",
       "dest": "/favicon.ico"
+    },
+    {
+      "src": "/css/(.*)",
+      "dest": "/css/$1"
+    },
+    {
+      "src": "/js/(.*)",
+      "dest": "/js/$1"
+    },
+    {
+      "src": "/assets/(.*)",
+      "dest": "/assets/$1"
+    },
+    {
+      "src": "/supabase/(.*)",
+      "dest": "/supabase/$1"
     },
     {
       "src": "/(.*)",
@@ -126,13 +129,5 @@
         }
       ]
     }
-  ],
-  "env": {
-    "VITE_SUPABASE_URL": "https://kqdzhajnkrjhryilaqdu.supabase.co",
-    "VITE_SUPABASE_ANON_KEY": "sb_publishable_f7R-mvQIWT5wKgdBGYyi8w_6vfH2WbM"
-  },
-  "github": {
-    "enabled": true,
-    "silent": true
-  }
+  ]
 }

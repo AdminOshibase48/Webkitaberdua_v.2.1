@@ -1,9 +1,13 @@
-// Finance functionality
-let currentTransactions = [];
-let currentBudgets = [];
-let currentSavings = [];
+// ============================================
+// FINANCE MODULE
+// ============================================
 
-// Add transaction
+let currentTransactions = [];
+
+// ============================================
+// ADD TRANSACTION
+// ============================================
+
 async function addTransaction(type, amount, category, description = '') {
     try {
         const user = await getCurrentUser();
@@ -13,9 +17,9 @@ async function addTransaction(type, amount, category, description = '') {
             user_id: user.id,
             type: type,
             amount: parseFloat(amount),
-            category: category,
+            category: category || 'General',
             description: description,
-            date: new Date().toISOString()
+            date: new Date().toISOString().split('T')[0]
         };
 
         const { data, error } = await supabaseClient
@@ -29,14 +33,19 @@ async function addTransaction(type, amount, category, description = '') {
         // Add XP for financial responsibility
         await addXP(3);
 
+        showToast(`Transaksi ${type} berhasil ditambahkan! 💰`, 'success');
         return data;
     } catch (error) {
         console.error('Add transaction error:', error);
+        showToast('Gagal menambahkan transaksi', 'error');
         return null;
     }
 }
 
-// Get transactions
+// ============================================
+// GET TRANSACTIONS
+// ============================================
+
 async function getTransactions(limit = 50) {
     try {
         const user = await getCurrentUser();
@@ -58,7 +67,10 @@ async function getTransactions(limit = 50) {
     }
 }
 
-// Get shared transactions (both partners)
+// ============================================
+// GET SHARED TRANSACTIONS
+// ============================================
+
 async function getSharedTransactions(limit = 50) {
     try {
         const user = await getCurrentUser();
@@ -84,7 +96,10 @@ async function getSharedTransactions(limit = 50) {
     }
 }
 
-// Calculate totals
+// ============================================
+// CALCULATE TOTALS
+// ============================================
+
 async function calculateTotals() {
     try {
         const transactions = await getSharedTransactions(1000);
@@ -117,7 +132,10 @@ async function calculateTotals() {
     }
 }
 
-// Add budget
+// ============================================
+// BUDGET FUNCTIONS
+// ============================================
+
 async function addBudget(category, amount, period = 'monthly') {
     try {
         const user = await getCurrentUser();
@@ -129,7 +147,7 @@ async function addBudget(category, amount, period = 'monthly') {
             amount: parseFloat(amount),
             period: period,
             spent: 0,
-            start_date: new Date().toISOString()
+            start_date: new Date().toISOString().split('T')[0]
         };
 
         const { data, error } = await supabaseClient
@@ -139,14 +157,15 @@ async function addBudget(category, amount, period = 'monthly') {
             .single();
 
         if (error) throw error;
+        showToast(`Budget ${category} berhasil dibuat! 📊`, 'success');
         return data;
     } catch (error) {
         console.error('Add budget error:', error);
+        showToast('Gagal membuat budget', 'error');
         return null;
     }
 }
 
-// Get budgets
 async function getBudgets() {
     try {
         const user = await getCurrentUser();
@@ -158,7 +177,6 @@ async function getBudgets() {
             .eq('user_id', user.id);
 
         if (error) throw error;
-        currentBudgets = data;
         return data;
     } catch (error) {
         console.error('Get budgets error:', error);
@@ -166,7 +184,10 @@ async function getBudgets() {
     }
 }
 
-// Add savings goal
+// ============================================
+// SAVINGS GOALS
+// ============================================
+
 async function addSavingsGoal(name, targetAmount, currentAmount = 0) {
     try {
         const user = await getCurrentUser();
@@ -186,20 +207,25 @@ async function addSavingsGoal(name, targetAmount, currentAmount = 0) {
             .single();
 
         if (error) throw error;
+        showToast(`Tujuan tabungan ${name} berhasil dibuat! 💾`, 'success');
         return data;
     } catch (error) {
         console.error('Add savings goal error:', error);
+        showToast('Gagal membuat tujuan tabungan', 'error');
         return null;
     }
 }
 
-// Render transactions
+// ============================================
+// RENDER TRANSACTIONS
+// ============================================
+
 function renderTransactions(transactions) {
     const container = document.getElementById('transactions-list');
     if (!container) return;
 
     if (!transactions || transactions.length === 0) {
-        container.innerHTML = '<p class="empty-state">No transactions yet</p>';
+        container.innerHTML = '<p class="empty-state">Belum ada transaksi</p>';
         return;
     }
 
@@ -215,15 +241,25 @@ function renderTransactions(transactions) {
                     <span class="transaction-category">${t.category}</span>
                 </div>
                 <span class="transaction-amount ${amountClass}">
-                    ${sign} Rp ${parseFloat(t.amount).toLocaleString()}
+                    ${sign} ${formatCurrency(t.amount)}
                 </span>
             </div>
         `;
     }).join('');
 }
 
-// Initialize finance
+// ============================================
+// INIT FINANCE
+// ============================================
+
 document.addEventListener('DOMContentLoaded', async () => {
+    // Check auth
+    const user = await getCurrentUser();
+    if (!user) {
+        window.location.href = 'login.html';
+        return;
+    }
+
     // Load transactions
     const totals = await calculateTotals();
 
@@ -233,14 +269,14 @@ document.addEventListener('DOMContentLoaded', async () => {
     const expenseEl = document.getElementById('total-expense');
     const savingsEl = document.getElementById('total-savings');
 
-    if (balanceEl) balanceEl.textContent = `Rp ${totals.balance.toLocaleString()}`;
-    if (incomeEl) incomeEl.textContent = `Rp ${totals.totalIncome.toLocaleString()}`;
-    if (expenseEl) expenseEl.textContent = `Rp ${totals.totalExpense.toLocaleString()}`;
-    if (savingsEl) savingsEl.textContent = `Rp ${totals.totalSavings.toLocaleString()}`;
+    if (balanceEl) balanceEl.textContent = formatCurrency(totals.balance);
+    if (incomeEl) incomeEl.textContent = formatCurrency(totals.totalIncome);
+    if (expenseEl) expenseEl.textContent = formatCurrency(totals.totalExpense);
+    if (savingsEl) savingsEl.textContent = formatCurrency(totals.totalSavings);
 
     renderTransactions(totals.transactions);
 
-    // Transaction form handlers
+    // Modal handlers
     const modal = document.getElementById('transaction-modal');
     const addIncomeBtn = document.getElementById('add-income');
     const addExpenseBtn = document.getElementById('add-expense');
@@ -251,8 +287,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (!modal) return;
         document.getElementById('transaction-type').value = type;
         document.getElementById('transaction-modal-title').textContent =
-            type === 'income' ? 'Add Income' :
-            type === 'expense' ? 'Add Expense' : 'Add Savings';
+            type === 'income' ? 'Tambah Pemasukan' :
+            type === 'expense' ? 'Tambah Pengeluaran' : 'Tambah Tabungan';
         modal.classList.remove('hidden');
     };
 
@@ -266,6 +302,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
     }
 
+    // Transaction form
     const transactionForm = document.getElementById('transaction-form');
     if (transactionForm) {
         transactionForm.addEventListener('submit', async (e) => {
@@ -277,25 +314,27 @@ document.addEventListener('DOMContentLoaded', async () => {
 
             const result = await addTransaction(type, amount, category, description);
             if (result) {
-                showToast('Transaction added successfully! 💰', 'success');
                 modal.classList.add('hidden');
                 transactionForm.reset();
+                
                 // Reload transactions
                 const newTotals = await calculateTotals();
                 renderTransactions(newTotals.transactions);
+                
                 // Update summary
-                if (balanceEl) balanceEl.textContent = `Rp ${newTotals.balance.toLocaleString()}`;
-                if (incomeEl) incomeEl.textContent = `Rp ${newTotals.totalIncome.toLocaleString()}`;
-                if (expenseEl) expenseEl.textContent = `Rp ${newTotals.totalExpense.toLocaleString()}`;
-                if (savingsEl) savingsEl.textContent = `Rp ${newTotals.totalSavings.toLocaleString()}`;
-            } else {
-                showToast('Failed to add transaction', 'error');
+                if (balanceEl) balanceEl.textContent = formatCurrency(newTotals.balance);
+                if (incomeEl) incomeEl.textContent = formatCurrency(newTotals.totalIncome);
+                if (expenseEl) expenseEl.textContent = formatCurrency(newTotals.totalExpense);
+                if (savingsEl) savingsEl.textContent = formatCurrency(newTotals.totalSavings);
             }
         });
     }
 });
 
-// Export functions
+// ============================================
+// EXPORTS
+// ============================================
+
 window.addTransaction = addTransaction;
 window.getTransactions = getTransactions;
 window.getSharedTransactions = getSharedTransactions;
@@ -303,3 +342,6 @@ window.calculateTotals = calculateTotals;
 window.addBudget = addBudget;
 window.getBudgets = getBudgets;
 window.addSavingsGoal = addSavingsGoal;
+window.renderTransactions = renderTransactions;
+
+console.log('✅ Finance module loaded');

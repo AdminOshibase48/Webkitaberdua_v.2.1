@@ -1,216 +1,246 @@
 // ============================================
-// AUTH HANDLERS - FIXED VERSION
+// AUTH HANDLERS - FULL VERSION
 // ============================================
-
-// ============================================
-// PASTIKAN FUNGSI DARI SUPABASE.JS TERSEDIA
-// ============================================
-
-// Tunggu sampai supabase.js selesai loading
-document.addEventListener('DOMContentLoaded', () => {
-    console.log('📋 Auth.js initialized');
-    console.log('🔍 Checking supabase functions...');
-    console.log('✅ signUp:', typeof window.signUp);
-    console.log('✅ signIn:', typeof window.signIn);
-    console.log('✅ signOut:', typeof window.signOut);
-    console.log('✅ resetPassword:', typeof window.resetPassword);
-});
 
 // ============================================
 // LOGIN FORM HANDLER
 // ============================================
 
 document.addEventListener('DOMContentLoaded', () => {
+    // ============================================
+    // LOGIN FORM
+    // ============================================
+    
     const loginForm = document.getElementById('login-form');
     if (loginForm) {
         loginForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             
-            const email = document.getElementById('email')?.value;
-            const password = document.getElementById('password')?.value;
+            const emailInput = document.getElementById('email');
+            const passwordInput = document.getElementById('password');
+            const submitBtn = loginForm.querySelector('button[type="submit"]');
+            const email = emailInput?.value?.trim();
+            const password = passwordInput?.value;
 
+            // Validasi
             if (!email || !password) {
-                showToast('Mohon isi semua field', 'error');
+                showToast('⚠️ Email dan password wajib diisi', 'error');
+                emailInput?.focus();
                 return;
             }
 
-            // Cek apakah fungsi signIn tersedia
-            if (typeof window.signIn !== 'function') {
-                showToast('Error: Fungsi signIn tidak tersedia. Refresh halaman.', 'error');
-                console.error('❌ signIn function not found');
-                return;
+            // Disable button
+            if (submitBtn) {
+                submitBtn.disabled = true;
+                submitBtn.textContent = '⏳ Loading...';
             }
 
             try {
-                const result = await window.signIn(email, password);
+                console.log('🔑 Attempting login for:', email);
+                const result = await signIn(email, password);
+                
                 if (result.success) {
-                    showToast('Selamat datang kembali! 💕', 'success');
+                    showToast('✅ Selamat datang kembali! 💕', 'success');
+                    console.log('✅ Login successful, redirecting...');
                     setTimeout(() => {
                         window.location.href = 'dashboard.html';
                     }, 500);
                 } else {
-                    showToast(result.error || 'Login gagal', 'error');
+                    showToast('❌ ' + (result.error || 'Login gagal'), 'error');
+                    console.error('Login failed:', result.error);
+                    if (submitBtn) {
+                        submitBtn.disabled = false;
+                        submitBtn.textContent = 'Masuk';
+                    }
                 }
             } catch (error) {
                 console.error('Login error:', error);
-                showToast('Terjadi kesalahan saat login', 'error');
+                showToast('❌ Terjadi kesalahan: ' + error.message, 'error');
+                if (submitBtn) {
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = 'Masuk';
+                }
             }
         });
     }
-});
 
-// ============================================
-// REGISTER FORM HANDLER
-// ============================================
-
-document.addEventListener('DOMContentLoaded', () => {
+    // ============================================
+    // REGISTER FORM
+    // ============================================
+    
     const registerForm = document.getElementById('register-form');
     if (registerForm) {
         registerForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             
-            const fullName = document.getElementById('full-name')?.value;
-            const email = document.getElementById('email')?.value;
-            const password = document.getElementById('password')?.value;
-            const partnerEmail = document.getElementById('partner-email')?.value || null;
+            const nameInput = document.getElementById('full-name');
+            const emailInput = document.getElementById('email');
+            const passwordInput = document.getElementById('password');
+            const partnerEmailInput = document.getElementById('partner-email');
+            
+            const fullName = nameInput?.value?.trim();
+            const email = emailInput?.value?.trim();
+            const password = passwordInput?.value;
+            const partnerEmail = partnerEmailInput?.value?.trim() || null;
 
+            // Validasi
             if (!fullName || !email || !password) {
-                showToast('Mohon isi semua field', 'error');
+                showToast('⚠️ Semua field wajib diisi', 'error');
                 return;
             }
 
             if (password.length < 6) {
-                showToast('Password minimal 6 karakter', 'error');
+                showToast('⚠️ Password minimal 6 karakter', 'error');
+                passwordInput?.focus();
                 return;
             }
 
-            // Cek apakah fungsi signUp tersedia
-            if (typeof window.signUp !== 'function') {
-                showToast('Error: Fungsi signUp tidak tersedia. Refresh halaman.', 'error');
-                console.error('❌ signUp function not found');
+            if (!isValidEmail(email)) {
+                showToast('⚠️ Format email tidak valid', 'error');
+                emailInput?.focus();
                 return;
+            }
+
+            if (partnerEmail && !isValidEmail(partnerEmail)) {
+                showToast('⚠️ Format email partner tidak valid', 'error');
+                partnerEmailInput?.focus();
+                return;
+            }
+
+            const submitBtn = registerForm.querySelector('button[type="submit"]');
+            if (submitBtn) {
+                submitBtn.disabled = true;
+                submitBtn.textContent = '⏳ Mendaftar...';
             }
 
             try {
-                const result = await window.signUp(email, password, fullName, partnerEmail);
+                const result = await signUp(email, password, fullName, partnerEmail);
+                
                 if (result.success) {
-                    showToast('Akun berhasil dibuat! 🎉', 'success');
+                    showToast('✅ Akun berhasil dibuat! 🎉', 'success');
+                    console.log('✅ Registration successful, redirecting...');
                     setTimeout(() => {
                         window.location.href = 'dashboard.html';
                     }, 500);
                 } else {
-                    showToast(result.error || 'Registrasi gagal', 'error');
+                    showToast('❌ ' + (result.error || 'Registrasi gagal'), 'error');
+                    if (submitBtn) {
+                        submitBtn.disabled = false;
+                        submitBtn.textContent = 'Buat Akun ✨';
+                    }
                 }
             } catch (error) {
-                console.error('Register error:', error);
-                showToast('Terjadi kesalahan saat registrasi', 'error');
+                console.error('Registration error:', error);
+                showToast('❌ Terjadi kesalahan: ' + error.message, 'error');
+                if (submitBtn) {
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = 'Buat Akun ✨';
+                }
             }
         });
     }
-});
 
-// ============================================
-// SIGN OUT HANDLER
-// ============================================
-
-document.addEventListener('DOMContentLoaded', () => {
+    // ============================================
+    // SIGN OUT BUTTON
+    // ============================================
+    
     const signOutBtn = document.getElementById('sign-out');
     if (signOutBtn) {
         signOutBtn.addEventListener('click', async () => {
-            if (typeof window.signOut !== 'function') {
-                showToast('Error: Fungsi signOut tidak tersedia', 'error');
-                return;
-            }
-
             try {
-                const result = await window.signOut();
+                const result = await signOut();
                 if (result.success) {
-                    showToast('Berhasil keluar 👋', 'success');
+                    showToast('✅ Berhasil keluar 👋', 'success');
                     setTimeout(() => {
                         window.location.href = 'index.html';
                     }, 500);
                 } else {
-                    showToast(result.error || 'Gagal keluar', 'error');
+                    showToast('❌ Gagal keluar: ' + (result.error || 'Unknown error'), 'error');
                 }
             } catch (error) {
-                console.error('Sign out error:', error);
-                showToast('Terjadi kesalahan', 'error');
+                showToast('❌ Gagal keluar: ' + error.message, 'error');
             }
         });
     }
-});
 
-// ============================================
-// PASSWORD RESET HANDLER
-// ============================================
-
-document.addEventListener('DOMContentLoaded', () => {
+    // ============================================
+    // FORGOT PASSWORD
+    // ============================================
+    
     const forgotLink = document.querySelector('.forgot-password');
     if (forgotLink) {
         forgotLink.addEventListener('click', async (e) => {
             e.preventDefault();
-            
-            const email = prompt('Masukkan email Anda untuk reset password:');
-            if (!email) return;
-
-            if (typeof window.resetPassword !== 'function') {
-                showToast('Error: Fungsi resetPassword tidak tersedia', 'error');
-                return;
-            }
-
-            try {
-                const result = await window.resetPassword(email);
-                if (result.success) {
-                    showToast('Email reset password telah dikirim! 📧', 'success');
-                } else {
-                    showToast(result.error || 'Gagal mengirim email reset', 'error');
+            const email = prompt('Masukkan email untuk reset password:');
+            if (email) {
+                if (!isValidEmail(email)) {
+                    showToast('⚠️ Format email tidak valid', 'error');
+                    return;
                 }
-            } catch (error) {
-                console.error('Reset password error:', error);
-                showToast('Terjadi kesalahan', 'error');
+                
+                try {
+                    const result = await resetPassword(email);
+                    if (result.success) {
+                        showToast('✅ Email reset password telah dikirim! 📧', 'success');
+                    } else {
+                        showToast('❌ Gagal mengirim email reset: ' + (result.error || 'Unknown error'), 'error');
+                    }
+                } catch (error) {
+                    showToast('❌ Gagal: ' + error.message, 'error');
+                }
             }
         });
     }
-});
 
-// ============================================
-// AUTH STATE MONITOR
-// ============================================
+    // ============================================
+    // ENTER KEY SHORTCUT
+    // ============================================
+    
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+            const activeElement = document.activeElement;
+            if (activeElement && activeElement.closest('form')) {
+                const form = activeElement.closest('form');
+                const submitBtn = form.querySelector('button[type="submit"]');
+                if (submitBtn) {
+                    submitBtn.click();
+                }
+            }
+        }
+    });
 
-// Monitor perubahan auth state
-document.addEventListener('DOMContentLoaded', () => {
-    // Cek apakah user sudah login
-    if (typeof window.getCurrentUser === 'function') {
-        window.getCurrentUser().then(user => {
+    // ============================================
+    // AUTO LOGIN CHECK
+    // ============================================
+    
+    // Cek jika user sudah login dan di halaman auth
+    const currentPath = window.location.pathname.split('/').pop();
+    const authPages = ['login.html', 'register.html', 'index.html'];
+    
+    if (authPages.includes(currentPath)) {
+        getCurrentUser().then(user => {
             if (user) {
-                console.log('✅ User sudah login:', user.email);
-                
-                // Jika di halaman login/register, redirect ke dashboard
-                const currentPage = window.location.pathname.split('/').pop();
-                if (['login.html', 'register.html'].includes(currentPage)) {
-                    window.location.href = 'dashboard.html';
-                }
-            } else {
-                console.log('👤 User belum login');
-                
-                // Jika di halaman protected, redirect ke login
-                const protectedPages = ['dashboard.html', 'chat.html', 'finance.html', 
-                    'memories.html', 'calendar.html', 'settings.html', 'ai.html'];
-                const currentPage = window.location.pathname.split('/').pop();
-                if (protectedPages.includes(currentPage)) {
-                    window.location.href = 'login.html';
-                }
+                console.log('User already logged in, redirecting to dashboard');
+                window.location.href = 'dashboard.html';
             }
-        }).catch(error => {
-            console.error('Error checking auth:', error);
         });
     }
 });
 
 // ============================================
-// EXPOSE FUNCTIONS
+// VALIDATION HELPERS
 // ============================================
 
-// Tidak perlu expose karena sudah di supabase.js
+function isValidEmail(email) {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+}
 
-console.log('✅ Auth module loaded successfully');
+function isValidPassword(password) {
+    return password && password.length >= 6;
+}
+
+// ============================================
+// EXPORT
+// ============================================
+
+console.log('✅ Auth module loaded');

@@ -12,15 +12,15 @@ let isStreaming = false;
 
 // Available models
 const AVAILABLE_MODELS = {
-    'google/gemini-2.0-flash-lite-preview-02-05:free': 'Gemini 2.0 Flash Lite (Free)',
-    'google/gemini-2.0-flash-exp:free': 'Gemini 2.0 Flash (Free)',
+    'nvidia/nemotron-3-super-120b-a12b:free': 'NVIDIA: Nemotron 3 Super (free)',
+    'google/gemma-4-26b-a4b-it:free': 'Google: Gemma 4 (Free)',
     'google/gemini-2.0-pro-exp-02-05:free': 'Gemini 2.0 Pro (Free)',
     'anthropic/claude-3.5-sonnet:beta': 'Claude 3.5 Sonnet',
     'anthropic/claude-3-haiku:beta': 'Claude 3 Haiku',
     'meta-llama/llama-3.2-3b-instruct:free': 'Llama 3.2 3B (Free)',
     'meta-llama/llama-3.1-8b-instruct:free': 'Llama 3.1 8B (Free)',
     'mistralai/mistral-7b-instruct:free': 'Mistral 7B (Free)',
-    'openai/gpt-4o-mini': 'GPT-4o Mini',
+    'openai/gpt-oss-120b:free': 'GPToss-120b ',
     'openai/gpt-4o': 'GPT-4o',
     'deepseek/deepseek-chat:free': 'DeepSeek Chat (Free)',
     'qwen/qwen-2.5-7b-instruct:free': 'Qwen 2.5 7B (Free)'

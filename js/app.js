@@ -115,13 +115,51 @@ function setupUI() {
 }
 
 // ============================================
-// SETUP QUICK ACTIONS
+// QUICK ACTIONS - FIXED
 // ============================================
 
 function setupQuickActions() {
+    // Gunakan event delegation untuk memastikan semua tombol terdeteksi
+    document.addEventListener('click', function(e) {
+        const btn = e.target.closest('.action-btn[data-action]');
+        if (!btn) return;
+        
+        e.preventDefault();
+        const action = btn.dataset.action;
+        const routes = {
+            'chat': 'chat.html',
+            'memory': 'memories.html',
+            'finance': 'finance.html',
+            'calendar': 'calendar.html',
+            'ai': 'ai.html',
+            'settings': 'settings.html'
+        };
+        
+        if (routes[action]) {
+            // Tambahkan efek visual sebelum navigasi
+            btn.style.transform = 'scale(0.95)';
+            setTimeout(() => {
+                window.location.href = routes[action];
+            }, 150);
+        }
+    });
+
+    // Setup bottom navigation active state
+    const currentPage = window.location.pathname.split('/').pop();
+    document.querySelectorAll('.bottom-nav .nav-item').forEach(item => {
+        const href = item.getAttribute('href');
+        if (href === currentPage) {
+            item.classList.add('active');
+        } else {
+            item.classList.remove('active');
+        }
+    });
+
+    // Tambahkan juga event listener langsung untuk redundansi
     document.querySelectorAll('.action-btn[data-action]').forEach(btn => {
-        btn.addEventListener('click', () => {
-            const action = btn.dataset.action;
+        btn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            const action = this.dataset.action;
             const routes = {
                 'chat': 'chat.html',
                 'memory': 'memories.html',
@@ -130,11 +168,38 @@ function setupQuickActions() {
                 'ai': 'ai.html',
                 'settings': 'settings.html'
             };
+            
             if (routes[action]) {
-                window.location.href = routes[action];
+                this.style.transform = 'scale(0.95)';
+                setTimeout(() => {
+                    window.location.href = routes[action];
+                }, 150);
             }
         });
     });
+}
+
+// Panggil setupQuickActions di initApp
+async function initApp() {
+    console.log('💕 OurStory Together - Starting up...');
+
+    try {
+        // ... kode lainnya ...
+
+        // Setup quick actions - PASTIKAN DIPANGGIL
+        setTimeout(() => {
+            setupQuickActions();
+        }, 100);
+
+        // Setup theme
+        setupTheme();
+
+        console.log('✅ OurStory Together - Ready!');
+    } catch (error) {
+        console.error('❌ App initialization error:', error);
+        showToast('Error loading app. Please refresh.', 'error');
+    }
+}
 
     // Setup bottom navigation active state
     const currentPage = window.location.pathname.split('/').pop();

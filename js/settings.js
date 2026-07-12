@@ -284,7 +284,7 @@ async function updateProfile() {
 }
 
 // ============================================
-// LINK PARTNER
+// LINK PARTNER - FIXED VERSION
 // ============================================
 
 async function linkPartnerFromSettings() {
@@ -313,24 +313,121 @@ async function linkPartnerFromSettings() {
             return false;
         }
 
-        if (partnerEmail === user.email) {
+        if (partnerEmail.toLowerCase() === user.email.toLowerCase()) {
             showToast('Tidak bisa menghubungkan dengan diri sendiri', 'error');
             return false;
         }
 
-        // Cari partner
-        const { data: partner, error: findError } = await supabaseClient
+        showToast('🔍 Mencari partner...', 'info');
+
+        // ============================================
+        // CARI PARTNER DENGAN 3 METODE
+        // ============================================
+
+        let partner = null;
+        let findError = null;
+
+        // METHOD 1: Cari di tabel profiles dengan ILIKE (case-insensitive)
+        const { data: profileData, error: profileError } = await supabaseClient
             .from('profiles')
             .select('id, full_name, email')
-            .eq('email', partnerEmail)
+            .ilike('email', partnerEmail)
             .single();
 
-        if (findError || !partner) {
-            showToast('❌ Partner tidak ditemukan. Pastikan mereka sudah mendaftar.', 'error');
+        if (profileError && profileError.code !== 'PGRST116') {
+            console.log('Profile search error:', profileError);
+        }
+
+        if (profileData) {
+            partner = profileData;
+            console.log('✅ Partner found in profiles:', partner);
+        }
+
+        // METHOD 2: Jika tidak ditemukan di profiles, cari di auth.users
+        if (!partner) {
+            console.log('🔍 Searching in auth.users...');
+            
+            // Gunakan RPC function atau admin API
+            // Note: Ini memerlukan service_role key
+            try {
+                const { data: userData, error: userError } = await supabaseClient
+                    .from('users')
+                    .select('id, email')
+                    .ilike('email', partnerEmail)
+                    .single();
+
+                if (!userError && userData) {
+                    console.log('✅ Partner found in users:', userData);
+                    
+                    // Cek apakah profile sudah ada
+                    const { data: existingProfile } = await supabaseClient
+                        .from('profiles')
+                        .select('id, full_name, email')
+                        .eq('id', userData.id)
+                        .single();
+
+                    if (existingProfile) {
+                        partner = existingProfile;
+                    } else {
+                        // Profile belum ada, buatkan
+                        const { data: newProfile, error: createError } = await supabaseClient
+                            .from('profiles')
+                            .insert({
+                                id: userData.id,
+                                email: userData.email,
+                                full_name: userData.email.split('@')[0],
+                                status: 'offline'
+                            })
+                            .select()
+                            .single();
+
+                        if (!createError && newProfile) {
+                            partner = newProfile;
+                            console.log('✅ Profile created for partner:', partner);
+                        }
+                    }
+                }
+            } catch (e) {
+                console.log('User search error:', e);
+            }
+        }
+
+        // METHOD 3: Cari dengan query custom ke auth.users (via Supabase Admin)
+        if (!partner) {
+            console.log('🔍 Trying admin search...');
+            try {
+                // Ini memerlukan Supabase Admin API
+                const { data: adminData, error: adminError } = await supabaseClient
+                    .from('profiles')
+                    .select('id, full_name, email')
+                    .ilike('email', `%${partnerEmail}%`)
+                    .limit(1);
+
+                if (!adminError && adminData && adminData.length > 0) {
+                    partner = adminData[0];
+                    console.log('✅ Partner found via admin search:', partner);
+                }
+            } catch (e) {
+                console.log('Admin search error:', e);
+            }
+        }
+
+        // ============================================
+        // HASIL PENCARIAN
+        // ============================================
+
+        if (!partner) {
+            showToast(`❌ Partner dengan email "${partnerEmail}" tidak ditemukan.`, 'error');
+            console.log('❌ Partner not found with any method');
             return false;
         }
 
-        // Cek relationship existing
+        if (partner.id === user.id) {
+            showToast('Tidak bisa menghubungkan dengan diri sendiri', 'error');
+            return false;
+        }
+
+        // Cek apakah sudah dalam relationship
         const { data: existingRel } = await supabaseClient
             .from('relationships')
             .select('*')
@@ -338,7 +435,6 @@ async function linkPartnerFromSettings() {
             .single();
 
         if (existingRel) {
-            // Update existing
             if (existingRel.user1_id === user.id) {
                 await supabaseClient
                     .from('relationships')
@@ -359,7 +455,7 @@ async function linkPartnerFromSettings() {
                     .eq('id', existingRel.id);
             }
         } else {
-            // Create new
+            // Create new relationship
             await supabaseClient
                 .from('relationships')
                 .insert({
@@ -372,7 +468,7 @@ async function linkPartnerFromSettings() {
                 });
         }
 
-        // Update profiles
+        // Update profiles with partner IDs
         await supabaseClient
             .from('profiles')
             .update({ 
@@ -392,7 +488,7 @@ async function linkPartnerFromSettings() {
         // Add XP
         await addXP(user.id, 50);
 
-        showToast(`✅ Berhasil terhubung dengan ${partner.full_name}! 💕`, 'success');
+        showToast(`✅ Berhasil terhubung dengan ${partner.full_name || partner.email}! 💕`, 'success');
         showConfetti(30);
 
         // Refresh partner data

@@ -2,7 +2,7 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes" />
     <title>AI Assistant - OurStory Together</title>
     <link rel="manifest" href="manifest.json" />
     <link rel="icon" href="favicon.ico" />
@@ -12,82 +12,695 @@
     <link rel="stylesheet" href="css/components.css" />
     <link rel="stylesheet" href="css/responsive.css" />
     <link rel="stylesheet" href="css/animations.css" />
+    
+    <style>
+        /* ============================================
+           AI.HTML SPECIFIC STYLES
+           ============================================ */
+        
+        .ai-page {
+            padding: 80px 0 80px;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        /* Header AI */
+        .ai-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 1.25rem 1rem;
+            border-bottom: 1px solid var(--card-border);
+        }
+
+        .ai-header-left {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .ai-avatar-large {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8rem;
+            box-shadow: 0 4px 20px rgba(255, 107, 157, 0.3);
+        }
+
+        .ai-header-info h1 {
+            font-size: 1.2rem;
+            font-weight: 700;
+            margin: 0;
+        }
+
+        .ai-header-info p {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            margin: 0;
+        }
+
+        .ai-header-info .status {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.3rem;
+            font-size: 0.7rem;
+            color: #34c759;
+        }
+
+        .ai-header-info .status .dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: #34c759;
+            animation: pulse 1.5s ease-in-out infinite;
+        }
+
+        /* Quick Actions */
+        .ai-quick-actions {
+            display: flex;
+            gap: 0.5rem;
+            padding: 1rem 1.25rem;
+            overflow-x: auto;
+            scrollbar-width: none;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .ai-quick-actions::-webkit-scrollbar {
+            display: none;
+        }
+
+        .ai-quick-btn {
+            flex-shrink: 0;
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 50px;
+            background: var(--card-bg);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--card-border);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.8rem;
+            font-weight: 500;
+            color: var(--text-primary);
+            white-space: nowrap;
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+
+        .ai-quick-btn:hover {
+            transform: translateY(-2px);
+            background: rgba(255, 255, 255, 0.15);
+            border-color: var(--color-primary);
+            box-shadow: 0 4px 20px rgba(255, 107, 157, 0.15);
+        }
+
+        .ai-quick-btn:active {
+            transform: scale(0.95);
+        }
+
+        .ai-quick-btn .emoji {
+            font-size: 1rem;
+        }
+
+        .ai-quick-btn.primary {
+            background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
+            color: white;
+            border-color: transparent;
+        }
+
+        .ai-quick-btn.primary:hover {
+            box-shadow: 0 4px 25px rgba(255, 107, 157, 0.4);
+        }
+
+        /* Chat Container */
+        .ai-chat-wrapper {
+            padding: 0 1.25rem;
+        }
+
+        .ai-chat-container {
+            height: 55vh;
+            min-height: 350px;
+            max-height: 600px;
+            background: var(--card-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--card-border);
+            border-radius: var(--radius);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .ai-messages {
+            flex: 1;
+            padding: 1rem;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .ai-messages::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        .ai-messages::-webkit-scrollbar-thumb {
+            background: var(--color-primary);
+            border-radius: 10px;
+        }
+
+        /* Message Styles */
+        .ai-message {
+            display: flex;
+            gap: 0.6rem;
+            animation: slideInUp 0.3s ease-out;
+        }
+
+        .ai-message.user {
+            justify-content: flex-end;
+        }
+
+        .ai-message.user .ai-avatar {
+            display: none;
+        }
+
+        .ai-message.user .ai-bubble {
+            background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
+            color: white;
+            border-bottom-right-radius: 4px;
+        }
+
+        .ai-message.assistant {
+            justify-content: flex-start;
+        }
+
+        .ai-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: var(--card-bg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+            flex-shrink: 0;
+            border: 1px solid var(--card-border);
+        }
+
+        .ai-bubble {
+            max-width: 85%;
+            padding: 0.6rem 0.9rem;
+            border-radius: var(--radius-sm);
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            line-height: 1.6;
+            font-size: 0.9rem;
+            word-wrap: break-word;
+        }
+
+        .ai-bubble p {
+            margin: 0.25rem 0;
+        }
+
+        .ai-bubble p:first-child {
+            margin-top: 0;
+        }
+
+        .ai-bubble p:last-child {
+            margin-bottom: 0;
+        }
+
+        .ai-bubble strong {
+            color: var(--color-primary);
+        }
+
+        .ai-bubble.user-bubble {
+            background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
+            color: white;
+            border-bottom-right-radius: 4px;
+        }
+
+        .ai-bubble.user-bubble strong {
+            color: #ffd700;
+        }
+
+        .ai-bubble .message-time {
+            font-size: 0.6rem;
+            opacity: 0.6;
+            margin-top: 0.25rem;
+            display: block;
+        }
+
+        .ai-bubble.user-bubble .message-time {
+            opacity: 0.8;
+        }
+
+        /* Typing Indicator */
+        .ai-typing {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            background: var(--card-bg);
+            border-top: 1px solid var(--card-border);
+        }
+
+        .ai-typing .typing-dots {
+            display: flex;
+            gap: 4px;
+        }
+
+        .ai-typing .typing-dots span {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--text-secondary);
+            animation: typingBounce 1.4s infinite;
+        }
+
+        .ai-typing .typing-dots span:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+        .ai-typing .typing-dots span:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+
+        .ai-typing .typing-text {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+        }
+
+        .ai-typing.hidden {
+            display: none;
+        }
+
+        /* Input Area */
+        .ai-input-area {
+            display: flex;
+            gap: 0.5rem;
+            padding: 0.75rem 1rem;
+            background: var(--card-bg);
+            backdrop-filter: blur(10px);
+            border-top: 1px solid var(--card-border);
+        }
+
+        .ai-input-area input {
+            flex: 1;
+            padding: 0.6rem 1rem;
+            border: 2px solid var(--card-border);
+            border-radius: var(--radius-sm);
+            background: var(--glass-bg);
+            color: var(--text-primary);
+            font-size: 0.95rem;
+            transition: all 0.3s ease;
+        }
+
+        .ai-input-area input:focus {
+            outline: none;
+            border-color: var(--color-primary);
+            box-shadow: 0 0 0 4px rgba(255, 107, 157, 0.1);
+        }
+
+        .ai-input-area input::placeholder {
+            color: var(--text-muted);
+        }
+
+        .ai-send-btn {
+            width: 44px;
+            height: 44px;
+            border: none;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
+            color: white;
+            font-size: 1.2rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .ai-send-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 20px rgba(255, 107, 157, 0.4);
+        }
+
+        .ai-send-btn:active {
+            transform: scale(0.95);
+        }
+
+        .ai-send-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* Status Bar */
+        .ai-status-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.5rem 1.25rem;
+            margin-top: 0.5rem;
+            flex-wrap: wrap;
+            gap: 0.3rem;
+        }
+
+        .ai-status-item {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            font-size: 0.7rem;
+            color: var(--text-secondary);
+        }
+
+        .ai-status-item .status-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+
+        .ai-status-item .status-dot.online {
+            background: #34c759;
+        }
+
+        .ai-status-item .status-dot.loading {
+            background: #ff9500;
+            animation: pulse 1s ease-in-out infinite;
+        }
+
+        .ai-status-item .status-dot.offline {
+            background: #ff3b30;
+        }
+
+        /* Welcome Message */
+        .ai-welcome {
+            text-align: center;
+            padding: 2rem 1rem;
+            color: var(--text-secondary);
+        }
+
+        .ai-welcome .icon {
+            font-size: 4rem;
+            display: block;
+            margin-bottom: 1rem;
+        }
+
+        .ai-welcome h3 {
+            color: var(--text-primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .ai-welcome p {
+            font-size: 0.9rem;
+            line-height: 1.8;
+            max-width: 400px;
+            margin: 0 auto;
+        }
+
+        .ai-welcome .features-list {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 0.5rem;
+            margin-top: 1rem;
+        }
+
+        .ai-welcome .features-list span {
+            padding: 0.25rem 0.75rem;
+            background: var(--card-bg);
+            border-radius: 50px;
+            font-size: 0.75rem;
+            border: 1px solid var(--card-border);
+        }
+
+        /* Empty State */
+        .empty-state-ai {
+            text-align: center;
+            padding: 2rem 1rem;
+            color: var(--text-secondary);
+        }
+
+        .empty-state-ai .icon {
+            font-size: 3rem;
+            display: block;
+            margin-bottom: 0.5rem;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .ai-page {
+                padding: 70px 0 80px;
+            }
+
+            .ai-chat-container {
+                height: 45vh;
+                min-height: 300px;
+            }
+
+            .ai-quick-actions {
+                padding: 0.75rem 1rem;
+                gap: 0.4rem;
+            }
+
+            .ai-quick-btn {
+                font-size: 0.7rem;
+                padding: 0.4rem 0.75rem;
+            }
+
+            .ai-bubble {
+                max-width: 90%;
+                font-size: 0.85rem;
+                padding: 0.5rem 0.75rem;
+            }
+
+            .ai-input-area {
+                padding: 0.5rem 0.75rem;
+            }
+
+            .ai-input-area input {
+                font-size: 0.85rem;
+                padding: 0.5rem 0.75rem;
+            }
+
+            .ai-send-btn {
+                width: 38px;
+                height: 38px;
+                font-size: 1rem;
+            }
+
+            .ai-status-bar {
+                padding: 0.3rem 1rem;
+                font-size: 0.65rem;
+            }
+
+            .ai-header {
+                padding: 0 1rem 0.75rem;
+            }
+
+            .ai-avatar-large {
+                width: 40px;
+                height: 40px;
+                font-size: 1.4rem;
+            }
+
+            .ai-header-info h1 {
+                font-size: 1rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .ai-chat-container {
+                height: 40vh;
+                min-height: 250px;
+            }
+
+            .ai-welcome .icon {
+                font-size: 3rem;
+            }
+
+            .ai-welcome h3 {
+                font-size: 1rem;
+            }
+
+            .ai-welcome p {
+                font-size: 0.8rem;
+            }
+
+            .ai-welcome .features-list span {
+                font-size: 0.65rem;
+                padding: 0.2rem 0.5rem;
+            }
+
+            .ai-quick-btn {
+                font-size: 0.65rem;
+                padding: 0.3rem 0.6rem;
+            }
+        }
+
+        /* Scroll to bottom button */
+        .ai-scroll-bottom {
+            position: absolute;
+            bottom: 80px;
+            right: 20px;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: var(--card-bg);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--card-border);
+            cursor: pointer;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+            z-index: 10;
+        }
+
+        .ai-scroll-bottom:hover {
+            transform: scale(1.05);
+        }
+
+        .ai-scroll-bottom.visible {
+            display: flex;
+        }
+    </style>
 </head>
 <body>
     <div id="app">
-        <!-- Header -->
+        <!-- Page Header -->
         <header class="page-header glass">
             <button class="back-btn" onclick="window.location.href='dashboard.html'">←</button>
             <h1>🤖 LoveGuide AI</h1>
-            <button class="icon-btn" onclick="window.location.href='settings.html'">⚙️</button>
+            <button class="icon-btn" onclick="window.location.href='settings.html'" aria-label="Settings">⚙️</button>
         </header>
 
         <!-- Main Content -->
-        <main class="ai-container">
-            <!-- Quick Actions -->
-            <div class="ai-quick-actions">
-                <button class="ai-quick-btn" data-type="relationship_advice">💕 Advice</button>
-                <button class="ai-quick-btn" data-type="date_ideas">🌹 Date Ideas</button>
-                <button class="ai-quick-btn" data-type="motivation">✨ Motivation</button>
-                <button class="ai-quick-btn" data-type="love_language">💬 Love Language</button>
-                <button class="ai-quick-btn" data-type="anniversary">🎉 Anniversary</button>
-                <button class="ai-quick-btn" data-type="gift">🎁 Gift Ideas</button>
-                <button class="ai-quick-btn" data-type="analyze">🔍 Analyze Us</button>
-                <button class="ai-quick-btn" data-type="financial_advice">💰 Finance</button>
+        <main class="ai-page">
+            <!-- AI Header -->
+            <div class="ai-header">
+                <div class="ai-header-left">
+                    <div class="ai-avatar-large">🤖</div>
+                    <div class="ai-header-info">
+                        <h1>LoveGuide</h1>
+                        <p>Asisten AI untuk hubungan Anda</p>
+                        <span class="status">
+                            <span class="dot"></span>
+                            <span id="ai-status-text">Siap membantu</span>
+                        </span>
+                    </div>
+                </div>
+                <div>
+                    <button class="icon-btn" id="clear-history" title="Hapus riwayat chat">🗑️</button>
+                </div>
             </div>
 
-            <!-- AI Chat Area -->
-            <div class="ai-chat-container glass">
-                <div class="ai-messages" id="ai-messages">
-                    <div class="ai-message ai-assistant">
-                        <div class="ai-avatar">🤖</div>
-                        <div class="ai-bubble">
-                            <p>Halo! Saya <strong>LoveGuide</strong>, asisten AI untuk hubungan Anda. 💕</p>
-                            <p style="margin-top: 0.5rem; font-size: 0.9rem; opacity: 0.8;">
-                                Saya bisa membantu dengan:
-                                <br>• Saran hubungan & komunikasi
-                                <br>• Ide kencan kreatif
-                                <br>• Motivasi harian
-                                <br>• Analisis bahasa cinta
-                                <br>• Perencanaan anniversary
-                                <br>• Rekomendasi hadiah
-                                <br>• Saran keuangan untuk pasangan
+            <!-- Quick Actions -->
+            <div class="ai-quick-actions">
+                <button class="ai-quick-btn primary" data-type="analyze">
+                    <span class="emoji">🔍</span> Analisis Hubungan
+                </button>
+                <button class="ai-quick-btn" data-type="relationship_advice">
+                    <span class="emoji">💕</span> Saran
+                </button>
+                <button class="ai-quick-btn" data-type="date_ideas">
+                    <span class="emoji">🌹</span> Ide Kencan
+                </button>
+                <button class="ai-quick-btn" data-type="motivation">
+                    <span class="emoji">✨</span> Motivasi
+                </button>
+                <button class="ai-quick-btn" data-type="love_language">
+                    <span class="emoji">💬</span> Bahasa Cinta
+                </button>
+                <button class="ai-quick-btn" data-type="anniversary">
+                    <span class="emoji">🎉</span> Anniversary
+                </button>
+                <button class="ai-quick-btn" data-type="gift">
+                    <span class="emoji">🎁</span> Hadiah
+                </button>
+                <button class="ai-quick-btn" data-type="financial_advice">
+                    <span class="emoji">💰</span> Keuangan
+                </button>
+            </div>
+
+            <!-- Chat Container -->
+            <div class="ai-chat-wrapper">
+                <div class="ai-chat-container" style="position: relative;">
+                    <!-- Messages -->
+                    <div class="ai-messages" id="ai-messages">
+                        <!-- Welcome Message -->
+                        <div class="ai-welcome" id="ai-welcome">
+                            <span class="icon">💕</span>
+                            <h3>Halo! Saya <strong style="color: var(--color-primary);">LoveGuide</strong></h3>
+                            <p>
+                                Saya asisten AI yang siap membantu hubungan Anda.<br />
+                                Saya bisa memberikan saran, ide kencan, motivasi, dan banyak lagi.
                             </p>
-                            <p style="margin-top: 0.5rem; font-size: 0.9rem; opacity: 0.8;">
+                            <div class="features-list">
+                                <span>💬 Saran Hubungan</span>
+                                <span>🌹 Ide Kencan</span>
+                                <span>✨ Motivasi Harian</span>
+                                <span>💬 Bahasa Cinta</span>
+                                <span>🎉 Anniversary</span>
+                                <span>🎁 Rekomendasi Hadiah</span>
+                            </div>
+                            <p style="margin-top: 1rem; font-size: 0.8rem; color: var(--text-muted);">
                                 💡 Coba klik salah satu tombol di atas atau tanyakan apapun!
                             </p>
                         </div>
                     </div>
-                </div>
 
-                <!-- Loading Indicator -->
-                <div id="ai-loading" class="ai-loading hidden">
-                    <div class="typing-indicator">
-                        <span></span>
-                        <span></span>
-                        <span></span>
+                    <!-- Scroll to Bottom -->
+                    <button class="ai-scroll-bottom" id="scroll-bottom" aria-label="Scroll ke bawah">⬇️</button>
+
+                    <!-- Typing Indicator -->
+                    <div class="ai-typing hidden" id="ai-typing">
+                        <div class="typing-dots">
+                            <span></span>
+                            <span></span>
+                            <span></span>
+                        </div>
+                        <span class="typing-text">LoveGuide sedang mengetik...</span>
                     </div>
-                    <span style="margin-left: 0.5rem; font-size: 0.9rem; color: var(--text-secondary);">LoveGuide sedang berpikir...</span>
-                </div>
 
-                <!-- Input Area -->
-                <div class="ai-input-area glass">
-                    <input type="text" id="ai-input" placeholder="Tanyakan apapun tentang hubungan Anda..." autocomplete="off" />
-                    <button id="ai-send-btn" class="ai-send-btn">➤</button>
+                    <!-- Input Area -->
+                    <div class="ai-input-area">
+                        <input 
+                            type="text" 
+                            id="ai-input" 
+                            placeholder="Tanyakan apapun tentang hubungan Anda..."
+                            autocomplete="off"
+                            aria-label="Pesan untuk AI"
+                        />
+                        <button class="ai-send-btn" id="ai-send-btn" aria-label="Kirim pesan">
+                            <span>➤</span>
+                        </button>
+                    </div>
                 </div>
             </div>
 
-            <!-- AI Status -->
-            <div class="ai-status-bar glass">
+            <!-- Status Bar -->
+            <div class="ai-status-bar">
                 <div class="ai-status-item">
                     <span class="status-dot online" id="ai-status-dot"></span>
-                    <span id="ai-status-text">Siap</span>
+                    <span id="ai-status-label">Online</span>
                 </div>
                 <div class="ai-status-item">
-                    <span>🤖 Model: <span id="ai-model-display">Loading...</span></span>
+                    <span>🤖 <span id="ai-model-display">Loading...</span></span>
                 </div>
                 <div class="ai-status-item">
-                    <span>📊 <span id="ai-context-status">✅ Dengan konteks</span></span>
+                    <span id="ai-context-status">📊 Dengan data hubungan</span>
+                </div>
+                <div class="ai-status-item">
+                    <span id="ai-message-count">0 pesan</span>
                 </div>
             </div>
         </main>
@@ -125,5 +738,325 @@
     <script src="js/theme.js"></script>
     <script src="js/ai.js"></script>
     <script src="js/app.js"></script>
+    
+    <script>
+        // ============================================
+        // AI PAGE SPECIFIC SCRIPTS
+        // ============================================
+
+        document.addEventListener('DOMContentLoaded', function() {
+            // Check auth
+            getCurrentUser().then(async (user) => {
+                if (!user) {
+                    window.location.href = 'login.html';
+                    return;
+                }
+
+                // Update model display
+                const modelDisplay = document.getElementById('ai-model-display');
+                if (modelDisplay) {
+                    const models = getAvailableModels ? getAvailableModels() : {};
+                    const currentModel = getUserModel ? getUserModel() : 'google/gemini-2.0-flash-lite-preview-02-05:free';
+                    modelDisplay.textContent = models[currentModel] || currentModel;
+                }
+
+                // Update context status
+                const contextStatus = document.getElementById('ai-context-status');
+                if (contextStatus) {
+                    const apiKey = getApiKey ? getApiKey() : '';
+                    if (apiKey) {
+                        contextStatus.textContent = '✅ Dengan data hubungan';
+                        contextStatus.style.color = '#34c759';
+                    } else {
+                        contextStatus.textContent = '⚠️ Tanpa API Key';
+                        contextStatus.style.color = '#ff9500';
+                    }
+                }
+
+                // Load AI history
+                await loadAIHistory();
+
+                // Setup chat
+                setupAIChat();
+
+                // Setup quick actions
+                setupQuickActions();
+
+                // Setup clear history
+                setupClearHistory();
+
+                // Setup scroll to bottom
+                setupScrollToBottom();
+
+                console.log('🤖 AI Page initialized');
+            });
+
+            function setupAIChat() {
+                const input = document.getElementById('ai-input');
+                const sendBtn = document.getElementById('ai-send-btn');
+                const messagesContainer = document.getElementById('ai-messages');
+                const typing = document.getElementById('ai-typing');
+
+                if (!input || !sendBtn) return;
+
+                async function sendMessage() {
+                    const message = input.value.trim();
+                    if (!message) return;
+
+                    // Check API key
+                    const apiKey = getApiKey ? getApiKey() : '';
+                    if (!apiKey) {
+                        showToast('⚠️ API Key tidak ditemukan. Hubungi developer.', 'error');
+                        return;
+                    }
+
+                    // Hide welcome
+                    const welcome = document.getElementById('ai-welcome');
+                    if (welcome) welcome.style.display = 'none';
+
+                    // Add user message
+                    addAIMessage('user', message);
+                    input.value = '';
+                    input.disabled = true;
+                    sendBtn.disabled = true;
+
+                    // Show typing
+                    if (typing) typing.classList.remove('hidden');
+                    updateAIStatus('Sedang berpikir...', 'loading');
+
+                    // Send to AI
+                    const response = await sendAIMessage(message);
+
+                    // Hide typing
+                    if (typing) typing.classList.add('hidden');
+                    input.disabled = false;
+                    sendBtn.disabled = false;
+                    input.focus();
+
+                    if (response) {
+                        addAIMessage('assistant', response);
+                        updateAIStatus('Siap membantu', 'online');
+                        updateMessageCount();
+                    } else {
+                        addAIMessage('assistant', 'Maaf, saya mengalami masalah. Silakan coba lagi nanti. 😅');
+                        updateAIStatus('Error', 'offline');
+                    }
+                }
+
+                sendBtn.addEventListener('click', sendMessage);
+                input.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                        e.preventDefault();
+                        sendMessage();
+                    }
+                });
+
+                // Auto focus
+                setTimeout(() => input.focus(), 500);
+            }
+
+            function setupQuickActions() {
+                const buttons = document.querySelectorAll('.ai-quick-btn');
+                const typing = document.getElementById('ai-typing');
+
+                buttons.forEach(btn => {
+                    btn.addEventListener('click', async function() {
+                        const type = this.dataset.type;
+                        const apiKey = getApiKey ? getApiKey() : '';
+                        
+                        if (!apiKey) {
+                            showToast('⚠️ API Key tidak ditemukan. Hubungi developer.', 'error');
+                            return;
+                        }
+
+                        // Hide welcome
+                        const welcome = document.getElementById('ai-welcome');
+                        if (welcome) welcome.style.display = 'none';
+
+                        // Get message
+                        const templates = {
+                            'analyze': '🔍 Analisis hubungan saya secara lengkap. Gunakan semua data yang tersedia dan berikan saran yang spesifik.',
+                            'relationship_advice': '💕 Berikan saya saran hubungan yang penuh kasih untuk hari ini. Gunakan data hubungan saya untuk saran yang personal.',
+                            'date_ideas': '🌹 Sarankan 5 ide kencan yang kreatif dan romantis berdasarkan preferensi saya.',
+                            'motivation': '✨ Berikan saya motivasi cinta harian dan dorongan semangat.',
+                            'love_language': '💬 Bantu saya memahami bahasa cinta pasangan saya lebih baik. Analisis berdasarkan interaksi kami.',
+                            'anniversary': '🎉 Bantu saya merencanakan perayaan anniversary yang spesial dan bermakna.',
+                            'gift': '🎁 Sarankan ide hadiah yang bermakna untuk pasangan saya.',
+                            'financial_advice': '💰 Berikan saya saran keuangan untuk pasangan berdasarkan transaksi kami.'
+                        };
+
+                        const message = templates[type] || 'Halo!';
+                        
+                        // Add user message
+                        addAIMessage('user', message);
+
+                        // Show typing
+                        if (typing) typing.classList.remove('hidden');
+                        updateAIStatus('Sedang berpikir...', 'loading');
+
+                        // Send to AI
+                        const response = await quickAIPrompt(type);
+
+                        // Hide typing
+                        if (typing) typing.classList.add('hidden');
+
+                        if (response) {
+                            addAIMessage('assistant', response);
+                            updateAIStatus('Siap membantu', 'online');
+                            updateMessageCount();
+                        } else {
+                            addAIMessage('assistant', 'Maaf, saya mengalami masalah. Silakan coba lagi nanti. 😅');
+                            updateAIStatus('Error', 'offline');
+                        }
+                    });
+                });
+            }
+
+            function setupClearHistory() {
+                const clearBtn = document.getElementById('clear-history');
+                if (clearBtn) {
+                    clearBtn.addEventListener('click', async () => {
+                        if (!confirm('Hapus semua riwayat chat AI?')) return;
+                        
+                        try {
+                            const user = await getCurrentUser();
+                            if (!user) return;
+
+                            const { error } = await supabaseClient
+                                .from('ai_history')
+                                .delete()
+                                .eq('user_id', user.id);
+
+                            if (error) throw error;
+                            
+                            // Clear messages from UI
+                            const container = document.getElementById('ai-messages');
+                            if (container) {
+                                container.innerHTML = `
+                                    <div class="ai-welcome" id="ai-welcome">
+                                        <span class="icon">💕</span>
+                                        <h3>Riwayat telah dihapus</h3>
+                                        <p>Mulai percakapan baru dengan LoveGuide! ✨</p>
+                                    </div>
+                                `;
+                            }
+                            
+                            showToast('Riwayat AI berhasil dihapus', 'success');
+                        } catch (error) {
+                            console.error('Error clearing AI history:', error);
+                            showToast('Gagal menghapus riwayat', 'error');
+                        }
+                    });
+                }
+            }
+
+            function setupScrollToBottom() {
+                const container = document.getElementById('ai-messages');
+                const btn = document.getElementById('scroll-bottom');
+                
+                if (!container || !btn) return;
+
+                container.addEventListener('scroll', () => {
+                    const isAtBottom = container.scrollHeight - container.scrollTop - container.clientHeight < 50;
+                    btn.classList.toggle('visible', !isAtBottom && container.scrollHeight > container.clientHeight);
+                });
+
+                btn.addEventListener('click', () => {
+                    container.scrollTop = container.scrollHeight;
+                });
+            }
+
+            function updateMessageCount() {
+                const messages = document.querySelectorAll('.ai-message');
+                const countEl = document.getElementById('ai-message-count');
+                if (countEl) {
+                    const count = messages.length;
+                    countEl.textContent = count + ' pesan';
+                }
+            }
+
+            function updateAIStatus(text, status) {
+                const statusText = document.getElementById('ai-status-text');
+                const statusLabel = document.getElementById('ai-status-label');
+                const statusDot = document.getElementById('ai-status-dot');
+                
+                if (statusText) statusText.textContent = text;
+                if (statusLabel) statusLabel.textContent = status === 'loading' ? 'Mengetik...' : text;
+                if (statusDot) {
+                    statusDot.className = 'status-dot ' + status;
+                }
+            }
+
+            function addAIMessage(role, content) {
+                const container = document.getElementById('ai-messages');
+                if (!container) return;
+
+                // Hide welcome
+                const welcome = document.getElementById('ai-welcome');
+                if (welcome) welcome.style.display = 'none';
+
+                const messageDiv = document.createElement('div');
+                messageDiv.className = `ai-message ${role}`;
+
+                if (role === 'assistant') {
+                    const avatar = document.createElement('div');
+                    avatar.className = 'ai-avatar';
+                    avatar.textContent = '🤖';
+                    messageDiv.appendChild(avatar);
+
+                    const bubble = document.createElement('div');
+                    bubble.className = 'ai-bubble';
+                    
+                    // Format content
+                    const formatted = content.replace(/\n/g, '<br>');
+                    bubble.innerHTML = formatted;
+                    
+                    messageDiv.appendChild(bubble);
+                } else {
+                    const bubble = document.createElement('div');
+                    bubble.className = 'ai-bubble user-bubble';
+                    bubble.textContent = content;
+                    messageDiv.appendChild(bubble);
+                }
+
+                container.appendChild(messageDiv);
+                
+                // Scroll to bottom
+                setTimeout(() => {
+                    container.scrollTop = container.scrollHeight;
+                }, 100);
+
+                updateMessageCount();
+            }
+
+            async function loadAIHistory() {
+                try {
+                    const history = await getAIHistory(20);
+                    const container = document.getElementById('ai-messages');
+                    if (!container) return;
+
+                    if (history && history.length > 0) {
+                        // Hide welcome
+                        const welcome = document.getElementById('ai-welcome');
+                        if (welcome) welcome.style.display = 'none';
+
+                        // Show recent messages
+                        const recent = history.slice(0, 10);
+                        recent.reverse().forEach(item => {
+                            addAIMessage('user', item.prompt);
+                            addAIMessage('assistant', item.response);
+                        });
+                    }
+                } catch (error) {
+                    console.error('Error loading AI history:', error);
+                }
+            }
+
+            // Override addAIMessage from ai.js with our version
+            window.addAIMessage = addAIMessage;
+            window.updateAIStatus = updateAIStatus;
+            window.loadAIHistory = loadAIHistory;
+        });
+    </script>
 </body>
 </html>
